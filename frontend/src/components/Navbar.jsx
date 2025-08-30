@@ -22,6 +22,7 @@ const Navbar = () => {
               <span>Welcome, {user?.username}!</span>
               <span>({user?.role})</span>
               <Link to="/dashboard">Dashboard</Link>
+              <Link to="/map">World Map</Link>
               <button
                 onClick={handleLogout}
                 className="btn btn-secondary"
