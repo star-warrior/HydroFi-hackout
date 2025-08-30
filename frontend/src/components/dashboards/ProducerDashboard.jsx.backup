@@ -107,17 +107,16 @@ const ProducerDashboard = ({ data }) => {
 
       if (response.data.success) {
         setTransferSuccess(
-          `Token ${transferData.tokenId} transfer initiated successfully! Refreshing data...`
+          `Token ${transferData.tokenId} transferred successfully!`
         );
         setTransferData({ tokenId: "", recipientAddress: "" });
         setTransferError(null);
 
-        // Add a small delay to ensure blockchain state is updated
-        setTimeout(async () => {
-          await fetchTokens();
-          setTransferSuccess(`Token ${transferData.tokenId} transferred successfully!`);
-          setTimeout(() => setTransferSuccess(null), 5000);
-        }, 1000);
+        // Refresh tokens
+        fetchTokens();
+
+        // Clear success message after 5 seconds
+        setTimeout(() => setTransferSuccess(null), 5000);
       } else {
         setTransferError(response.data.message || "Transfer failed");
       }
@@ -127,32 +126,7 @@ const ProducerDashboard = ({ data }) => {
     }
   };
 
-  // Filter tokens based on ownership and creation
-  // Active tokens: Currently owned by user (regardless of who created them)
-  const userTokens = tokens.filter((token) => 
-    !token.isRetired && token.currentOwner === user?.walletAddress
-  );
-  
-  // Debug logging
-  useEffect(() => {
-    console.log('Tokens updated:', tokens.length);
-    console.log('User wallet:', user?.walletAddress);
-    console.log('Active tokens for user:', userTokens.length);
-    console.log('Token details:', tokens.map(t => ({ 
-      id: t.tokenId, 
-      creator: t.creator, 
-      currentOwner: t.currentOwner, 
-      isRetired: t.isRetired 
-    })));
-  }, [tokens, userTokens.length, user?.walletAddress]);
-  
-  // Transferred tokens: Created by user but now owned by someone else
-  const transferredTokens = tokens.filter((token) => 
-    !token.isRetired && 
-    token.creator === user?.walletAddress && 
-    token.currentOwner !== user?.walletAddress
-  );
-  
+  const userTokens = tokens.filter((token) => !token.isRetired);
   const retiredTokens = tokens.filter((token) => token.isRetired);
 
   return (
@@ -294,47 +268,7 @@ const ProducerDashboard = ({ data }) => {
           {/* Wallet Helper Component */}
           <WalletHelper />
 
-          {/* Transfer Method Toggle */}
-          <div style={{ marginTop: "15px", marginBottom: "20px" }}>
-            <label>
-              <input
-                type="radio"
-                value="identifier"
-                checked={transferMethod === 'identifier'}
-                onChange={(e) => setTransferMethod(e.target.value)}
-              />
-              Transfer by Username/Factory ID
-            </label>
-            <label style={{ marginLeft: "20px" }}>
-              <input
-                type="radio"
-                value="address"
-                checked={transferMethod === 'address'}
-                onChange={(e) => setTransferMethod(e.target.value)}
-              />
-              Transfer by Wallet Address
-            </label>
-          </div>
-
-          {transferMethod === 'identifier' ? (
-            <EnhancedTransferComponent 
-              userTokens={userTokens}
-              onTransferSuccess={async () => {
-                setTransferSuccess("Token transferred successfully! Refreshing data...");
-                // Add a small delay to ensure blockchain state is updated
-                setTimeout(async () => {
-                  await fetchTokens();
-                  setTransferSuccess("Token transferred successfully!");
-                  setTimeout(() => setTransferSuccess(null), 5000);
-                }, 1000);
-              }}
-              onTransferError={(error) => {
-                setTransferError(error);
-                setTimeout(() => setTransferError(null), 5000);
-              }}
-            />
-          ) : (
-            <form onSubmit={handleTransferToken} style={{ marginTop: "15px" }}>
+          <form onSubmit={handleTransferToken} style={{ marginTop: "15px" }}>
             <div style={{ marginBottom: "15px" }}>
               <label
                 htmlFor="tokenSelect"
@@ -448,7 +382,6 @@ const ProducerDashboard = ({ data }) => {
               </p>
             )}
           </form>
-          )}
 
           {transferSuccess && (
             <div
@@ -483,28 +416,7 @@ const ProducerDashboard = ({ data }) => {
 
         {/* My Tokens */}
         <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3>My Active Credits ({userTokens.length})</h3>
-            <button
-              onClick={async () => {
-                setTransferSuccess("Refreshing tokens...");
-                await fetchTokens();
-                setTransferSuccess("Tokens refreshed!");
-                setTimeout(() => setTransferSuccess(null), 2000);
-              }}
-              style={{
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              🔄 Refresh
-            </button>
-          </div>
+          <h3>My Active Credits ({userTokens.length})</h3>
           <div
             style={{ marginTop: "15px", maxHeight: "400px", overflowY: "auto" }}
           >

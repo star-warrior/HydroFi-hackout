@@ -234,18 +234,33 @@ router.get('/tokens', auth, async (req, res) => {
                 res.status(500).json({ message: 'Failed to fetch tokens', error: result.error });
             }
         } else if (userRole === 'Green Hydrogen Producer') {
-            // Producer view - get tokens they created (using their factoryId)
+            // Producer view - get tokens they created AND tokens they currently own
             const userFactoryId = req.user.factoryId;
+            const userWalletAddress = req.user.walletAddress;
 
             if (!userFactoryId) {
                 return res.status(400).json({ message: 'Factory ID not found for user' });
             }
 
-            const result = await blockchainService.getTokensByFactory(userFactoryId);
+            if (!userWalletAddress) {
+                return res.status(400).json({ message: 'Wallet address not found for user' });
+            }
 
-            if (result.success) {
+            // Get tokens created by this factory
+            const createdTokensResult = await blockchainService.getTokensByFactory(userFactoryId);
+            
+            // Get tokens owned by this user
+            const ownedTokensResult = await blockchainService.getTokensByOwner(userWalletAddress);
+
+            if (createdTokensResult.success && ownedTokensResult.success) {
+                // Combine and deduplicate token IDs
+                const allTokenIds = [...new Set([
+                    ...createdTokensResult.tokenIds,
+                    ...ownedTokensResult.tokenIds
+                ])];
+
                 const tokensWithDetails = [];
-                for (const tokenId of result.tokenIds) {
+                for (const tokenId of allTokenIds) {
                     const detailsResult = await blockchainService.getTokenDetails(tokenId);
                     if (detailsResult.success) {
                         tokensWithDetails.push({
@@ -261,11 +276,19 @@ router.get('/tokens', auth, async (req, res) => {
                     tokens: tokensWithDetails
                 });
             } else {
-                res.status(500).json({ message: 'Failed to fetch tokens', error: result.error });
+                res.status(500).json({ 
+                    message: 'Failed to fetch tokens', 
+                    error: createdTokensResult.error || ownedTokensResult.error 
+                });
             }
         } else if (userRole === 'Industry Buyer') {
             // Buyer view - get tokens they own
-            const userAddress = process.env.DEFAULT_WALLET_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+            const userAddress = req.user.walletAddress;
+            
+            if (!userAddress) {
+                return res.status(400).json({ message: 'Wallet address not found for user' });
+            }
+            
             const ownedTokensResult = await blockchainService.getTokensByOwner(userAddress);
 
             if (ownedTokensResult.success) {
@@ -556,6 +579,131 @@ router.get('/search', auth, requireAdmin, async (req, res) => {
         }
     } catch (error) {
         console.error('Search tokens error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+// GET /api/blockchain/resolve-recipient - Resolve factory ID, user ID, or username to user info
+router.get('/resolve-recipient/:identifier', auth, async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        const User = require('../models/User');
+
+        // Try to find user by username, factoryId, or _id
+        let user = await User.findOne({
+            $or: [
+                { username: identifier },
+                { factoryId: identifier.toUpperCase() },
+                { _id: identifier.match(/^[0-9a-fA-F]{24}$/) ? identifier : null }
+            ]
+        }).select('username email role factoryName factoryId walletAddress');
+
+        if (user) {
+            res.json({
+                success: true,
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    factoryName: user.factoryName,
+                    factoryId: user.factoryId,
+                    walletAddress: user.walletAddress
+                }
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+    } catch (error) {
+        console.error('Resolve recipient error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+// GET /api/blockchain/users - Get all users (for validation)
+router.get('/users', auth, async (req, res) => {
+    try {
+        const User = require('../models/User');
+        const users = await User.find({}).select('username email role factoryName factoryId walletAddress');
+        
+        res.json({
+            success: true,
+            users
+        });
+    } catch (error) {
+        console.error('Get users error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+// POST /api/blockchain/transfer-by-identifier - Transfer token using factory ID, user ID, or username
+router.post('/transfer-by-identifier', auth, async (req, res) => {
+    try {
+        const { tokenId, recipientIdentifier } = req.body;
+
+        if (!tokenId || !recipientIdentifier) {
+            return res.status(400).json({ message: 'Token ID and recipient identifier are required' });
+        }
+
+        // Resolve recipient
+        const User = require('../models/User');
+        const recipient = await User.findOne({
+            $or: [
+                { username: recipientIdentifier },
+                { factoryId: recipientIdentifier.toUpperCase() },
+                { _id: recipientIdentifier.match(/^[0-9a-fA-F]{24}$/) ? recipientIdentifier : null }
+            ]
+        });
+
+        if (!recipient) {
+            return res.status(404).json({ message: 'Recipient not found' });
+        }
+
+        if (!recipient.walletAddress) {
+            return res.status(400).json({ message: 'Recipient does not have a wallet address' });
+        }
+
+        // Use the regular transfer endpoint with the resolved wallet address
+        const transferResponse = await fetch(`${req.protocol}://${req.get('host')}/api/blockchain/transfer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': req.headers.authorization
+            },
+            body: JSON.stringify({
+                tokenId,
+                to: recipient.walletAddress
+            })
+        });
+
+        const transferResult = await transferResponse.json();
+
+        if (transferResult.success) {
+            // Update transaction record with recipient user ID
+            await Transaction.findOneAndUpdate(
+                { transactionHash: transferResult.transactionHash },
+                { recipientUserId: recipient._id }
+            );
+
+            res.json({
+                success: true,
+                message: `Token transferred successfully to ${recipient.username}`,
+                transactionHash: transferResult.transactionHash,
+                recipient: {
+                    username: recipient.username,
+                    role: recipient.role,
+                    factoryName: recipient.factoryName,
+                    walletAddress: recipient.walletAddress
+                }
+            });
+        } else {
+            res.status(500).json({ message: transferResult.message || 'Transfer failed' });
+        }
+    } catch (error) {
+        console.error('Transfer by identifier error:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });

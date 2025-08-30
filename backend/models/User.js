@@ -43,6 +43,12 @@ const userSchema = new mongoose.Schema({
         sparse: true, // Allow null values but ensure uniqueness when present
         uppercase: true,
         length: 12
+    },
+    walletAddress: {
+        type: String,
+        unique: true,
+        sparse: true, // Allow null values but ensure uniqueness when present
+        match: [/^0x[a-fA-F0-9]{40}$/, 'Please enter a valid Ethereum address']
     }
 }, {
     timestamps: true
@@ -76,6 +82,13 @@ userSchema.pre('save', async function (next) {
         if (this.isModified('password')) {
             const salt = await bcrypt.genSalt(10);
             this.password = await bcrypt.hash(this.password, salt);
+        }
+
+        // Generate wallet address if not already set
+        if (!this.walletAddress) {
+            const { ethers } = require('ethers');
+            const wallet = ethers.Wallet.createRandom();
+            this.walletAddress = wallet.address;
         }
 
         // Generate factory ID for producers if not already set
