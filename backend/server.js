@@ -20,6 +20,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hydrofi_d
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/blockchain', require('./routes/blockchain'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

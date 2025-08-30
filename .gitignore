@@ -15,6 +15,22 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Smart Contract artifacts and cache
+/contracts/artifacts/
+/contracts/cache/
+/contracts/typechain/
+/contracts/typechain-types/
+/contracts/node_modules/
+/contracts/.env
+
+# Hardhat files
+/contracts/deployments/
+/contracts/coverage/
+/contracts/.openzeppelin/
+
+# Contract deployment data
+contract-data.json
+
 # IDE and editor files
 .vscode/
 .idea/

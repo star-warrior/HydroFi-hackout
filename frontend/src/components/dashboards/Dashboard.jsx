@@ -17,7 +17,12 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await axios.get("/api/dashboard/data");
+        const token = localStorage.getItem('token');
+        const response = await axios.get("/api/dashboard/data", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         setDashboardData(response.data.data);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -63,7 +68,8 @@ const Dashboard = () => {
         return (
           <div className="card">
             <h2>Unknown Role</h2>
-            <p>Your role is not recognized. Please contact support.</p>
+            <p>Your role "{user?.role}" is not recognized. Please contact support.</p>
+            <p>Available roles: Green Hydrogen Producer, Regulatory Authority, Industry Buyer, Certification Body</p>
           </div>
         );
     }

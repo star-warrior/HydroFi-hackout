@@ -9,6 +9,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     role: "Green Hydrogen Producer",
+    factoryName: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,12 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validate factory name for producers
+    if (formData.role === "Green Hydrogen Producer" && !formData.factoryName.trim()) {
+      setError("Factory name is required for Green Hydrogen Producers");
+      return;
+    }
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
@@ -114,6 +121,25 @@ const Register = () => {
               ))}
             </select>
           </div>
+
+          {formData.role === "Green Hydrogen Producer" && (
+            <div className="form-group">
+              <label htmlFor="factoryName">Factory Name</label>
+              <input
+                type="text"
+                id="factoryName"
+                name="factoryName"
+                value={formData.factoryName}
+                onChange={handleChange}
+                required
+                placeholder="Enter your factory name (e.g., Green Energy Plant)"
+                maxLength={100}
+              />
+              <small style={{ color: "#666", fontSize: "12px" }}>
+                A unique 12-character Factory ID will be generated automatically
+              </small>
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
