@@ -1,3 +1,5 @@
+// Transaction schema for MongoDB, all fields should be dynamic and not hardcoded
+
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({

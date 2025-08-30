@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "npx hardhat compile",
-    "deploy": "hardhat run scripts/deploy.js",
+    "deploy": "npx hardhat run scripts/deploy.js",
     "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
     "node": "npx hardhat node",
     "test": "npx hardhat test",

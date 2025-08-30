@@ -15,10 +15,13 @@ const generateToken = (userId) => {
 // @access  Public
 router.post('/register', async (req, res) => {
     try {
+        console.log('📩 Register request body:', req.body);
+
         const { username, email, password, role, factoryName } = req.body;
 
         // Validate input
         if (!username || !email || !password || !role) {
+            console.warn('⚠️ Missing required fields during registration');
             return res.status(400).json({
                 message: 'Please provide username, email, password, and role'
             });
@@ -26,6 +29,7 @@ router.post('/register', async (req, res) => {
 
         // Validate factory name for producers
         if (role === 'Green Hydrogen Producer' && !factoryName) {
+            console.warn('⚠️ Factory name missing for producer');
             return res.status(400).json({
                 message: 'Factory name is required for Green Hydrogen Producers'
             });
@@ -37,26 +41,22 @@ router.post('/register', async (req, res) => {
         });
 
         if (existingUser) {
+            console.warn('⚠️ Duplicate user found:', existingUser.email, existingUser.username);
             return res.status(400).json({
                 message: 'User with this email or username already exists'
             });
         }
 
         // Create new user
-        const userData = {
-            username,
-            email,
-            password,
-            role
-        };
-
-        // Add factory name for producers
+        const userData = { username, email, password, role };
         if (role === 'Green Hydrogen Producer') {
             userData.factoryName = factoryName;
         }
 
         const user = new User(userData);
         await user.save();
+
+        console.log('✅ User registered:', user.username, user.email);
 
         // Generate token
         const token = generateToken(user._id);
@@ -68,7 +68,6 @@ router.post('/register', async (req, res) => {
             role: user.role
         };
 
-        // Add factory info for producers
         if (role === 'Green Hydrogen Producer') {
             userResponse.factoryName = user.factoryName;
             userResponse.factoryId = user.factoryId;
@@ -80,7 +79,7 @@ router.post('/register', async (req, res) => {
             user: userResponse
         });
     } catch (error) {
-        console.error('Registration error:', error);
+        console.error('❌ Registration error:', error);
         res.status(500).json({ message: 'Server error during registration' });
     }
 });
@@ -90,28 +89,31 @@ router.post('/register', async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
     try {
+        console.log('📩 Login request body:', req.body);
+
         const { email, password } = req.body;
 
-        // Validate input
         if (!email || !password) {
+            console.warn('⚠️ Missing email or password during login');
             return res.status(400).json({
                 message: 'Please provide email and password'
             });
         }
 
-        // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
+            console.warn('⚠️ Login failed, no user with email:', email);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // Check password
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
+            console.warn('⚠️ Login failed, invalid password for email:', email);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // Generate token
+        console.log('✅ Login successful for:', user.email);
+
         const token = generateToken(user._id);
 
         const userResponse = {
@@ -121,7 +123,6 @@ router.post('/login', async (req, res) => {
             role: user.role
         };
 
-        // Add factory info for producers
         if (user.role === 'Green Hydrogen Producer') {
             userResponse.factoryName = user.factoryName;
             userResponse.factoryId = user.factoryId;
@@ -133,7 +134,7 @@ router.post('/login', async (req, res) => {
             user: userResponse
         });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         res.status(500).json({ message: 'Server error during login' });
     }
 });
@@ -143,6 +144,8 @@ router.post('/login', async (req, res) => {
 // @access  Private
 router.get('/me', auth, async (req, res) => {
     try {
+        console.log('📩 /me request from userId:', req.user._id);
+
         const userResponse = {
             id: req.user._id,
             username: req.user.username,
@@ -150,17 +153,16 @@ router.get('/me', auth, async (req, res) => {
             role: req.user.role
         };
 
-        // Add factory info for producers
         if (req.user.role === 'Green Hydrogen Producer') {
             userResponse.factoryName = req.user.factoryName;
             userResponse.factoryId = req.user.factoryId;
         }
 
-        res.json({
-            user: userResponse
-        });
+        console.log('✅ Returning user info:', userResponse);
+
+        res.json({ user: userResponse });
     } catch (error) {
-        console.error('Get user error:', error);
+        console.error('❌ Get user error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

@@ -49,15 +49,23 @@ router.post('/mint', auth, requireProducer, async (req, res) => {
                 // Save transaction to database only if we have valid data
                 if (result.transactionHash && result.tokenId) {
                     try {
-                        await new Transaction({
-                            transactionHash: result.transactionHash,
-                            type: 'mint',
-                            tokenId: result.tokenId,
-                            to: toAddress,
-                            factoryId: factoryId,
-                            userId: req.user.id,
-                            gasUsed: result.gasUsed
-                        }).save();
+                        await Transaction.findOneAndUpdate(
+                            { transactionHash: result.transactionHash }, // match by hash
+                            {
+                                transactionHash: result.transactionHash,
+                                type: 'mint', // or 'transfer' / 'retire'
+                                tokenId: result.tokenId,
+                                from: result.from || null,
+                                to: result.to || null,
+                                factoryId: result.factoryId || null,
+                                userId: req.user.id || null,
+                                gasUsed: result.gasUsed || null,
+                                blockNumber: result.blockNumber || null,
+                                timestamp: new Date()
+                            },
+                            { upsert: true, new: true }
+                        );
+
                     } catch (dbError) {
                         console.error('Database save error:', dbError);
                         // Continue with the response even if DB save fails

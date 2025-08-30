@@ -1,10 +1,18 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
-import "./index.css";
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom/client';
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+import './index.css';
+import { AuthProvider } from './contexts/AuthContext';
+import { RouteProvider } from './contexts/RouteContext';
+import App from './App';
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <RouteProvider>
+        <App />
+      </RouteProvider>
+    </AuthProvider>
   </React.StrictMode>
 );

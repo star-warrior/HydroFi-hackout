@@ -18,14 +18,21 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          setError("No authentication token found. Please log in again.");
+          setLoading(false);
+          return;
+        }
+
         const response = await axios.get("/api/dashboard/data", {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // ✅ fixed interpolation
           },
         });
+
         setDashboardData(response.data.data);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
         setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
@@ -69,8 +76,7 @@ const Dashboard = () => {
           <div className="card">
             <h2>Unknown Role</h2>
             <p>
-              Your role "{user?.role}" is not recognized. Please contact
-              support.
+              Your role "{user?.role}" is not recognized. Please contact support.
             </p>
             <p>
               Available roles: Green Hydrogen Producer, Regulatory Authority,

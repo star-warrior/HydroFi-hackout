@@ -1,3 +1,5 @@
+// Blockchain service: ensure all blockchain interactions use dynamic data and config from .env or contract-data.json
+
 const { ethers } = require('ethers');
 const fs = require('fs');
 const path = require('path');
