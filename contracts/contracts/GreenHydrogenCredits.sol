@@ -11,6 +11,13 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
     
     Counters.Counter private _tokenIds;
     
+    // Struct to store ownership history entry
+    struct OwnershipRecord {
+        address owner;
+        uint256 timestamp;
+        string transactionType; // "mint", "transfer", "retire"
+    }
+    
     // Struct to store token metadata
     struct TokenMetadata {
         address creator;
@@ -25,6 +32,9 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
     
     // Mapping from token ID to metadata
     mapping(uint256 => TokenMetadata) public tokenMetadata;
+    
+    // Mapping from token ID to ownership history
+    mapping(uint256 => OwnershipRecord[]) public ownershipHistory;
     
     // Array to store all token IDs for admin queries
     uint256[] public allTokenIds;
@@ -80,6 +90,13 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
             retiredBy: address(0)
         });
         
+        // Add initial ownership record
+        ownershipHistory[newTokenId].push(OwnershipRecord({
+            owner: to,
+            timestamp: block.timestamp,
+            transactionType: "mint"
+        }));
+        
         // Add to all tokens array for admin queries
         allTokenIds.push(newTokenId);
         
@@ -106,6 +123,13 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
         tokenMetadata[id].currentOwner = to;
         tokenMetadata[id].lastTransferTimestamp = block.timestamp;
         
+        // Add ownership record
+        ownershipHistory[id].push(OwnershipRecord({
+            owner: to,
+            timestamp: block.timestamp,
+            transactionType: "transfer"
+        }));
+        
         emit TokenTransferred(id, from, to, block.timestamp);
     }
     
@@ -129,6 +153,14 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
         for (uint256 i = 0; i < ids.length; i++) {
             tokenMetadata[ids[i]].currentOwner = to;
             tokenMetadata[ids[i]].lastTransferTimestamp = block.timestamp;
+            
+            // Add ownership record
+            ownershipHistory[ids[i]].push(OwnershipRecord({
+                owner: to,
+                timestamp: block.timestamp,
+                transactionType: "transfer"
+            }));
+            
             emit TokenTransferred(ids[i], from, to, block.timestamp);
         }
     }
@@ -149,6 +181,13 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
         tokenMetadata[tokenId].retirementTimestamp = block.timestamp;
         tokenMetadata[tokenId].retiredBy = msg.sender;
         
+        // Add retirement record
+        ownershipHistory[tokenId].push(OwnershipRecord({
+            owner: msg.sender,
+            timestamp: block.timestamp,
+            transactionType: "retire"
+        }));
+        
         emit TokenRetired(tokenId, msg.sender, block.timestamp);
     }
     
@@ -165,10 +204,83 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
     }
     
     /**
-     * @dev Get all token IDs (for admin dashboard)
+     * @dev Get ownership history for a token
      */
-    function getAllTokenIds() public view returns (uint256[] memory) {
-        return allTokenIds;
+    function getOwnershipHistory(uint256 tokenId) 
+        public 
+        view 
+        returns (OwnershipRecord[] memory) 
+    {
+        require(_exists(tokenId), "Token does not exist");
+        return ownershipHistory[tokenId];
+    }
+    
+    /**
+     * @dev Get detailed token info including history
+     */
+    function getTokenDetails(uint256 tokenId) 
+        public 
+        view 
+        returns (TokenMetadata memory metadata, OwnershipRecord[] memory history) 
+    {
+        require(_exists(tokenId), "Token does not exist");
+        return (tokenMetadata[tokenId], ownershipHistory[tokenId]);
+    }
+    
+    /**
+     * @dev Get tokens by factory ID (for admin dashboard filtering)
+     */
+    function getTokensByFactory(string memory factoryId) 
+        public 
+        view 
+        returns (uint256[] memory) 
+    {
+        uint256[] memory factoryTokens = new uint256[](allTokenIds.length);
+        uint256 factoryCount = 0;
+        
+        for (uint256 i = 0; i < allTokenIds.length; i++) {
+            uint256 tokenId = allTokenIds[i];
+            if (keccak256(bytes(tokenMetadata[tokenId].factoryId)) == keccak256(bytes(factoryId))) {
+                factoryTokens[factoryCount] = tokenId;
+                factoryCount++;
+            }
+        }
+        
+        // Create a new array with the correct size
+        uint256[] memory result = new uint256[](factoryCount);
+        for (uint256 i = 0; i < factoryCount; i++) {
+            result[i] = factoryTokens[i];
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @dev Get tokens by current owner (active tokens only)
+     */
+    function getActiveTokensByOwner(address owner) 
+        public 
+        view 
+        returns (uint256[] memory) 
+    {
+        uint256[] memory ownedTokens = new uint256[](allTokenIds.length);
+        uint256 ownedCount = 0;
+        
+        for (uint256 i = 0; i < allTokenIds.length; i++) {
+            uint256 tokenId = allTokenIds[i];
+            if (tokenMetadata[tokenId].currentOwner == owner && !tokenMetadata[tokenId].isRetired) {
+                ownedTokens[ownedCount] = tokenId;
+                ownedCount++;
+            }
+        }
+        
+        // Create a new array with the correct size
+        uint256[] memory result = new uint256[](ownedCount);
+        for (uint256 i = 0; i < ownedCount; i++) {
+            result[i] = ownedTokens[i];
+        }
+        
+        return result;
     }
     
     /**
@@ -235,6 +347,35 @@ contract GreenHydrogenCredits is ERC1155, Ownable, Pausable {
      */
     function _exists(uint256 tokenId) internal view returns (bool) {
         return tokenId > 0 && tokenId <= _tokenIds.current();
+    }
+    
+    /**
+     * @dev Get paginated tokens for admin dashboard
+     */
+    function getPaginatedTokens(uint256 offset, uint256 limit) 
+        public 
+        view 
+        returns (uint256[] memory tokenIds, uint256 totalCount) 
+    {
+        totalCount = allTokenIds.length;
+        
+        if (offset >= totalCount) {
+            return (new uint256[](0), totalCount);
+        }
+        
+        uint256 end = offset + limit;
+        if (end > totalCount) {
+            end = totalCount;
+        }
+        
+        uint256 length = end - offset;
+        uint256[] memory result = new uint256[](length);
+        
+        for (uint256 i = 0; i < length; i++) {
+            result[i] = allTokenIds[offset + i];
+        }
+        
+        return (result, totalCount);
     }
     
     /**

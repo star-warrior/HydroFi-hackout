@@ -169,45 +169,99 @@ router.post('/retire', auth, async (req, res) => {
     }
 });
 
-// GET /api/blockchain/tokens - Get tokens by role
+// GET /api/blockchain/tokens - Get tokens by role with enhanced features
 router.get('/tokens', auth, async (req, res) => {
     try {
         const userRole = req.user.role;
+        const { page = 1, limit = 20, search, factoryId, owner, status } = req.query;
 
         if (userRole === 'Regulatory Authority' || userRole === 'Certification Body') {
-            // Admin view - get all tokens with metadata
-            const result = await blockchainService.getAllTokensWithMetadata();
+            // Admin view with search and filtering capabilities
+            let result;
+
+            if (search || factoryId || owner || status) {
+                // Use search functionality
+                const filters = {};
+                if (factoryId) filters.factoryId = factoryId;
+                if (owner) filters.owner = owner;
+                if (status) filters.status = status;
+
+                result = await blockchainService.searchTokens(filters);
+            } else {
+                // Use pagination for all tokens
+                const offset = (parseInt(page) - 1) * parseInt(limit);
+                result = await blockchainService.getPaginatedTokensWithDetails(offset, parseInt(limit));
+            }
 
             if (result.success) {
+                // Enhance tokens with factory names
+                const User = require('../models/User');
+                const enhancedTokens = await Promise.all(
+                    result.tokens.map(async (token) => {
+                        try {
+                            const producer = await User.findOne({
+                                factoryId: token.metadata.factoryId,
+                                role: 'Green Hydrogen Producer'
+                            });
+                            return {
+                                ...token,
+                                factoryName: producer ? producer.factoryName : 'Unknown'
+                            };
+                        } catch (error) {
+                            return {
+                                ...token,
+                                factoryName: 'Unknown'
+                            };
+                        }
+                    })
+                );
+
                 // Also get transaction history from database
                 const transactions = await Transaction.find({})
                     .populate('userId', 'username email')
-                    .sort({ timestamp: -1 });
+                    .sort({ timestamp: -1 })
+                    .limit(100);
 
                 res.json({
                     success: true,
-                    tokens: result.tokens,
+                    tokens: enhancedTokens,
+                    totalCount: result.totalCount || enhancedTokens.length,
+                    page: parseInt(page),
+                    limit: parseInt(limit),
                     transactions: transactions
                 });
             } else {
                 res.status(500).json({ message: 'Failed to fetch tokens', error: result.error });
             }
         } else if (userRole === 'Green Hydrogen Producer') {
-            // Producer view - get tokens they created
-            const allTokensResult = await blockchainService.getAllTokensWithMetadata();
+            // Producer view - get tokens they created (using their factoryId)
+            const userFactoryId = req.user.factoryId;
 
-            if (allTokensResult.success) {
-                const userAddress = process.env.DEFAULT_WALLET_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
-                const userTokens = allTokensResult.tokens.filter(token =>
-                    token.creator.toLowerCase() === userAddress.toLowerCase()
-                );
+            if (!userFactoryId) {
+                return res.status(400).json({ message: 'Factory ID not found for user' });
+            }
+
+            const result = await blockchainService.getTokensByFactory(userFactoryId);
+
+            if (result.success) {
+                const tokensWithDetails = [];
+                for (const tokenId of result.tokenIds) {
+                    const detailsResult = await blockchainService.getTokenDetails(tokenId);
+                    if (detailsResult.success) {
+                        tokensWithDetails.push({
+                            tokenId,
+                            ...detailsResult.tokenDetails,
+                            factoryName: req.user.factoryName
+                        });
+                    }
+                }
 
                 res.json({
                     success: true,
-                    tokens: userTokens
+                    tokens: tokensWithDetails
                 });
             } else {
-                res.status(500).json({ message: 'Failed to fetch tokens', error: allTokensResult.error });
+                res.status(500).json({ message: 'Failed to fetch tokens', error: result.error });
             }
         } else if (userRole === 'Industry Buyer') {
             // Buyer view - get tokens they own
@@ -215,20 +269,35 @@ router.get('/tokens', auth, async (req, res) => {
             const ownedTokensResult = await blockchainService.getTokensByOwner(userAddress);
 
             if (ownedTokensResult.success) {
-                const tokensWithMetadata = [];
+                const tokensWithDetails = [];
+                const User = require('../models/User');
+
                 for (const tokenId of ownedTokensResult.tokenIds) {
-                    const metadataResult = await blockchainService.getTokenMetadata(tokenId);
-                    if (metadataResult.success) {
-                        tokensWithMetadata.push({
-                            tokenId,
-                            ...metadataResult.metadata
-                        });
+                    const detailsResult = await blockchainService.getTokenDetails(tokenId);
+                    if (detailsResult.success) {
+                        try {
+                            const producer = await User.findOne({
+                                factoryId: detailsResult.tokenDetails.metadata.factoryId,
+                                role: 'Green Hydrogen Producer'
+                            });
+                            tokensWithDetails.push({
+                                tokenId,
+                                ...detailsResult.tokenDetails,
+                                factoryName: producer ? producer.factoryName : 'Unknown'
+                            });
+                        } catch (error) {
+                            tokensWithDetails.push({
+                                tokenId,
+                                ...detailsResult.tokenDetails,
+                                factoryName: 'Unknown'
+                            });
+                        }
                     }
                 }
 
                 res.json({
                     success: true,
-                    tokens: tokensWithMetadata
+                    tokens: tokensWithDetails
                 });
             } else {
                 res.status(500).json({ message: 'Failed to fetch tokens', error: ownedTokensResult.error });
@@ -242,25 +311,63 @@ router.get('/tokens', auth, async (req, res) => {
     }
 });
 
-// GET /api/blockchain/token/:id - Get specific token metadata
+// GET /api/blockchain/token/:id - Get specific token with full details and history
 router.get('/token/:id', auth, async (req, res) => {
     try {
         const tokenId = req.params.id;
-        const result = await blockchainService.getTokenMetadata(tokenId);
+        const result = await blockchainService.getTokenDetails(tokenId);
 
         if (result.success) {
+            // Get factory name from database if available
+            const User = require('../models/User');
+            let factoryName = null;
+
+            try {
+                const producer = await User.findOne({
+                    factoryId: result.tokenDetails.metadata.factoryId,
+                    role: 'Green Hydrogen Producer'
+                });
+                if (producer) {
+                    factoryName = producer.factoryName;
+                }
+            } catch (dbError) {
+                console.warn('Could not fetch factory name:', dbError.message);
+            }
+
             res.json({
                 success: true,
                 token: {
                     tokenId,
-                    ...result.metadata
+                    ...result.tokenDetails,
+                    factoryName
                 }
             });
         } else {
             res.status(404).json({ message: 'Token not found', error: result.error });
         }
     } catch (error) {
-        console.error('Get token metadata error:', error);
+        console.error('Get token details error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+// GET /api/blockchain/token/:id/history - Get token ownership history
+router.get('/token/:id/history', auth, async (req, res) => {
+    try {
+        const tokenId = req.params.id;
+        const result = await blockchainService.getOwnershipHistory(tokenId);
+
+        if (result.success) {
+            res.json({
+                success: true,
+                tokenId,
+                history: result.history
+            });
+        } else {
+            res.status(404).json({ message: 'Token history not found', error: result.error });
+        }
+    } catch (error) {
+        console.error('Get token history error:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -327,6 +434,128 @@ router.get('/transactions', auth, requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Get transactions error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+// GET /api/blockchain/factories - Get all factory information for admin filtering
+router.get('/factories', auth, requireAdmin, async (req, res) => {
+    try {
+        const User = require('../models/User');
+        const factories = await User.find({
+            role: 'Green Hydrogen Producer',
+            factoryId: { $exists: true, $ne: null }
+        }).select('factoryId factoryName username');
+
+        res.json({
+            success: true,
+            factories: factories.map(factory => ({
+                factoryId: factory.factoryId,
+                factoryName: factory.factoryName,
+                producerName: factory.username
+            }))
+        });
+    } catch (error) {
+        console.error('Get factories error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+// GET /api/blockchain/search - Advanced search for tokens (Admin only)
+router.get('/search', auth, requireAdmin, async (req, res) => {
+    try {
+        const {
+            factoryName,
+            factoryId,
+            owner,
+            status,
+            startDate,
+            endDate,
+            page = 1,
+            limit = 20
+        } = req.query;
+
+        // Build search filters
+        const filters = {};
+        if (factoryId) filters.factoryId = factoryId;
+        if (owner) filters.owner = owner;
+        if (status) filters.status = status;
+
+        // If searching by factory name, first find the factoryId
+        if (factoryName && !factoryId) {
+            const User = require('../models/User');
+            const producer = await User.findOne({
+                factoryName: new RegExp(factoryName, 'i'),
+                role: 'Green Hydrogen Producer'
+            });
+            if (producer) {
+                filters.factoryId = producer.factoryId;
+            } else {
+                return res.json({
+                    success: true,
+                    tokens: [],
+                    totalCount: 0,
+                    message: 'No factory found with that name'
+                });
+            }
+        }
+
+        const result = await blockchainService.searchTokens(filters);
+
+        if (result.success) {
+            let filteredTokens = result.tokens;
+
+            // Apply date filters if provided
+            if (startDate || endDate) {
+                filteredTokens = filteredTokens.filter(token => {
+                    const tokenDate = new Date(token.metadata.creationTimestamp);
+                    const start = startDate ? new Date(startDate) : new Date(0);
+                    const end = endDate ? new Date(endDate) : new Date();
+                    return tokenDate >= start && tokenDate <= end;
+                });
+            }
+
+            // Apply pagination
+            const offset = (parseInt(page) - 1) * parseInt(limit);
+            const paginatedTokens = filteredTokens.slice(offset, offset + parseInt(limit));
+
+            // Enhance with factory names
+            const User = require('../models/User');
+            const enhancedTokens = await Promise.all(
+                paginatedTokens.map(async (token) => {
+                    try {
+                        const producer = await User.findOne({
+                            factoryId: token.metadata.factoryId,
+                            role: 'Green Hydrogen Producer'
+                        });
+                        return {
+                            ...token,
+                            factoryName: producer ? producer.factoryName : 'Unknown',
+                            producerName: producer ? producer.username : 'Unknown'
+                        };
+                    } catch (error) {
+                        return {
+                            ...token,
+                            factoryName: 'Unknown',
+                            producerName: 'Unknown'
+                        };
+                    }
+                })
+            );
+
+            res.json({
+                success: true,
+                tokens: enhancedTokens,
+                totalCount: filteredTokens.length,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(filteredTokens.length / parseInt(limit))
+            });
+        } else {
+            res.status(500).json({ message: 'Search failed', error: result.error });
+        }
+    } catch (error) {
+        console.error('Search tokens error:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });

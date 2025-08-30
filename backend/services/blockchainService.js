@@ -189,6 +189,66 @@ class BlockchainService {
         }
     }
 
+    async getOwnershipHistory(tokenId) {
+        this.ensureInitialized();
+
+        try {
+            const history = await this.contract.getOwnershipHistory(tokenId);
+
+            return {
+                success: true,
+                history: history.map(record => ({
+                    owner: record.owner,
+                    timestamp: new Date(Number(record.timestamp) * 1000),
+                    transactionType: record.transactionType
+                }))
+            };
+        } catch (error) {
+            console.error('Error getting ownership history:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    async getTokenDetails(tokenId) {
+        this.ensureInitialized();
+
+        try {
+            const [metadata, history] = await this.contract.getTokenDetails(tokenId);
+
+            return {
+                success: true,
+                tokenDetails: {
+                    metadata: {
+                        creator: metadata.creator,
+                        creationTimestamp: new Date(Number(metadata.creationTimestamp) * 1000),
+                        factoryId: metadata.factoryId,
+                        currentOwner: metadata.currentOwner,
+                        lastTransferTimestamp: new Date(Number(metadata.lastTransferTimestamp) * 1000),
+                        isRetired: metadata.isRetired,
+                        retirementTimestamp: metadata.retirementTimestamp > 0 ?
+                            new Date(Number(metadata.retirementTimestamp) * 1000) : null,
+                        retiredBy: metadata.retiredBy !== '0x0000000000000000000000000000000000000000' ?
+                            metadata.retiredBy : null
+                    },
+                    history: history.map(record => ({
+                        owner: record.owner,
+                        timestamp: new Date(Number(record.timestamp) * 1000),
+                        transactionType: record.transactionType
+                    }))
+                }
+            };
+        } catch (error) {
+            console.error('Error getting token details:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
     async getAllTokenIds() {
         this.ensureInitialized();
 
@@ -211,13 +271,52 @@ class BlockchainService {
         this.ensureInitialized();
 
         try {
-            const tokenIds = await this.contract.getTokensByOwner(ownerAddress);
+            const tokenIds = await this.contract.getActiveTokensByOwner(ownerAddress);
             return {
                 success: true,
                 tokenIds: tokenIds.map(id => id.toString())
             };
         } catch (error) {
             console.error('Error getting tokens by owner:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    async getTokensByFactory(factoryId) {
+        this.ensureInitialized();
+
+        try {
+            const tokenIds = await this.contract.getTokensByFactory(factoryId);
+            return {
+                success: true,
+                tokenIds: tokenIds.map(id => id.toString())
+            };
+        } catch (error) {
+            console.error('Error getting tokens by factory:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    async getPaginatedTokens(offset = 0, limit = 50) {
+        this.ensureInitialized();
+
+        try {
+            const [tokenIds, totalCount] = await this.contract.getPaginatedTokens(offset, limit);
+            return {
+                success: true,
+                tokenIds: tokenIds.map(id => id.toString()),
+                totalCount: totalCount.toString(),
+                offset,
+                limit
+            };
+        } catch (error) {
+            console.error('Error getting paginated tokens:', error);
             return {
                 success: false,
                 error: error.message
@@ -288,6 +387,105 @@ class BlockchainService {
             };
         } catch (error) {
             console.error('Error getting all tokens with metadata:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    async getPaginatedTokensWithDetails(offset = 0, limit = 20) {
+        this.ensureInitialized();
+
+        try {
+            const paginatedResult = await this.getPaginatedTokens(offset, limit);
+            if (!paginatedResult.success) {
+                return paginatedResult;
+            }
+
+            const tokensWithDetails = [];
+
+            for (const tokenId of paginatedResult.tokenIds) {
+                const detailsResult = await this.getTokenDetails(tokenId);
+                if (detailsResult.success) {
+                    tokensWithDetails.push({
+                        tokenId,
+                        ...detailsResult.tokenDetails
+                    });
+                }
+            }
+
+            return {
+                success: true,
+                tokens: tokensWithDetails,
+                totalCount: paginatedResult.totalCount,
+                offset: paginatedResult.offset,
+                limit: paginatedResult.limit
+            };
+        } catch (error) {
+            console.error('Error getting paginated tokens with details:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    async searchTokens(filters = {}) {
+        this.ensureInitialized();
+
+        try {
+            let tokenIds = [];
+
+            if (filters.factoryId) {
+                const factoryResult = await this.getTokensByFactory(filters.factoryId);
+                if (factoryResult.success) {
+                    tokenIds = factoryResult.tokenIds;
+                }
+            } else if (filters.owner) {
+                const ownerResult = await this.getTokensByOwner(filters.owner);
+                if (ownerResult.success) {
+                    tokenIds = ownerResult.tokenIds;
+                }
+            } else {
+                const allResult = await this.getAllTokenIds();
+                if (allResult.success) {
+                    tokenIds = allResult.tokenIds;
+                }
+            }
+
+            const tokensWithDetails = [];
+
+            for (const tokenId of tokenIds) {
+                const detailsResult = await this.getTokenDetails(tokenId);
+                if (detailsResult.success) {
+                    const token = {
+                        tokenId,
+                        ...detailsResult.tokenDetails
+                    };
+
+                    // Apply filters
+                    let includeToken = true;
+
+                    if (filters.status === 'retired' && !token.metadata.isRetired) {
+                        includeToken = false;
+                    } else if (filters.status === 'active' && token.metadata.isRetired) {
+                        includeToken = false;
+                    }
+
+                    if (includeToken) {
+                        tokensWithDetails.push(token);
+                    }
+                }
+            }
+
+            return {
+                success: true,
+                tokens: tokensWithDetails,
+                totalCount: tokensWithDetails.length
+            };
+        } catch (error) {
+            console.error('Error searching tokens:', error);
             return {
                 success: false,
                 error: error.message
