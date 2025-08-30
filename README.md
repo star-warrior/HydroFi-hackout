@@ -81,6 +81,7 @@ A full-stack MERN application for managing green hydrogen production, certificat
    ```
 
    This will:
+
    - Start a local Ethereum blockchain on `http://localhost:8545`
    - Create 20 test accounts with 10,000 ETH each
    - Display account addresses and private keys for testing
@@ -93,6 +94,7 @@ A full-stack MERN application for managing green hydrogen production, certificat
    ```
 
    This will:
+
    - Deploy the `GreenHydrogenCredits` ERC-1155 contract
    - Save contract data to `../backend/contract-data.json`
    - Display the deployed contract address
@@ -170,16 +172,19 @@ The application will be available at:
 ### Common Issues
 
 1. **Contract deployment fails**:
+
    - Ensure Hardhat node is running (`npx hardhat node`)
    - Check that port 8545 is not occupied by another process
    - Verify the private key in `.env` matches a Hardhat test account
 
 2. **Backend can't connect to blockchain**:
+
    - Verify `BLOCKCHAIN_RPC_URL=http://localhost:8545` in backend `.env`
    - Ensure contract is deployed and `contract-data.json` exists
    - Check that the Hardhat node is still running
 
 3. **Tokens not appearing after minting**:
+
    - Check browser console for errors
    - Verify user has unique wallet address (run migration script)
    - Ensure smart contract events are being emitted

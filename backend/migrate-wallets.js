@@ -11,7 +11,7 @@ async function migrateWallets() {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
-        
+
         console.log('Connected to MongoDB');
 
         // Find all users without wallet addresses

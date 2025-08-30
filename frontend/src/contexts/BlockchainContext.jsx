@@ -73,11 +73,11 @@ export const BlockchainProvider = ({ children }) => {
       );
 
       if (response.data.success) {
-        console.log('Transfer successful, refreshing tokens...');
+        console.log("Transfer successful, refreshing tokens...");
         // Add a small delay to ensure blockchain state is updated
         setTimeout(async () => {
           await fetchTokens();
-          console.log('Tokens refreshed after transfer');
+          console.log("Tokens refreshed after transfer");
         }, 1500);
         return response.data;
       } else {

@@ -248,7 +248,7 @@ router.get('/tokens', auth, async (req, res) => {
 
             // Get tokens created by this factory
             const createdTokensResult = await blockchainService.getTokensByFactory(userFactoryId);
-            
+
             // Get tokens owned by this user
             const ownedTokensResult = await blockchainService.getTokensByOwner(userWalletAddress);
 
@@ -276,19 +276,19 @@ router.get('/tokens', auth, async (req, res) => {
                     tokens: tokensWithDetails
                 });
             } else {
-                res.status(500).json({ 
-                    message: 'Failed to fetch tokens', 
-                    error: createdTokensResult.error || ownedTokensResult.error 
+                res.status(500).json({
+                    message: 'Failed to fetch tokens',
+                    error: createdTokensResult.error || ownedTokensResult.error
                 });
             }
         } else if (userRole === 'Industry Buyer') {
             // Buyer view - get tokens they own
             const userAddress = req.user.walletAddress;
-            
+
             if (!userAddress) {
                 return res.status(400).json({ message: 'Wallet address not found for user' });
             }
-            
+
             const ownedTokensResult = await blockchainService.getTokensByOwner(userAddress);
 
             if (ownedTokensResult.success) {
@@ -628,7 +628,7 @@ router.get('/users', auth, async (req, res) => {
     try {
         const User = require('../models/User');
         const users = await User.find({}).select('username email role factoryName factoryId walletAddress');
-        
+
         res.json({
             success: true,
             users

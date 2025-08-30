@@ -15,7 +15,7 @@ const ProducerDashboard = ({ data }) => {
   });
   const [transferSuccess, setTransferSuccess] = useState(null);
   const [transferError, setTransferError] = useState(null);
-  const [transferMethod, setTransferMethod] = useState('identifier'); // 'identifier' or 'address'
+  const [transferMethod, setTransferMethod] = useState("identifier"); // 'identifier' or 'address'
 
   const { user } = useAuth();
   const { tokens, loading, error, mintTokens, fetchTokens, retireToken } =
@@ -115,7 +115,9 @@ const ProducerDashboard = ({ data }) => {
         // Add a small delay to ensure blockchain state is updated
         setTimeout(async () => {
           await fetchTokens();
-          setTransferSuccess(`Token ${transferData.tokenId} transferred successfully!`);
+          setTransferSuccess(
+            `Token ${transferData.tokenId} transferred successfully!`
+          );
           setTimeout(() => setTransferSuccess(null), 5000);
         }, 1000);
       } else {
@@ -129,30 +131,34 @@ const ProducerDashboard = ({ data }) => {
 
   // Filter tokens based on ownership and creation
   // Active tokens: Currently owned by user (regardless of who created them)
-  const userTokens = tokens.filter((token) => 
-    !token.isRetired && token.currentOwner === user?.walletAddress
+  const userTokens = tokens.filter(
+    (token) => !token.isRetired && token.currentOwner === user?.walletAddress
   );
-  
+
   // Debug logging
   useEffect(() => {
-    console.log('Tokens updated:', tokens.length);
-    console.log('User wallet:', user?.walletAddress);
-    console.log('Active tokens for user:', userTokens.length);
-    console.log('Token details:', tokens.map(t => ({ 
-      id: t.tokenId, 
-      creator: t.creator, 
-      currentOwner: t.currentOwner, 
-      isRetired: t.isRetired 
-    })));
+    console.log("Tokens updated:", tokens.length);
+    console.log("User wallet:", user?.walletAddress);
+    console.log("Active tokens for user:", userTokens.length);
+    console.log(
+      "Token details:",
+      tokens.map((t) => ({
+        id: t.tokenId,
+        creator: t.creator,
+        currentOwner: t.currentOwner,
+        isRetired: t.isRetired,
+      }))
+    );
   }, [tokens, userTokens.length, user?.walletAddress]);
-  
+
   // Transferred tokens: Created by user but now owned by someone else
-  const transferredTokens = tokens.filter((token) => 
-    !token.isRetired && 
-    token.creator === user?.walletAddress && 
-    token.currentOwner !== user?.walletAddress
+  const transferredTokens = tokens.filter(
+    (token) =>
+      !token.isRetired &&
+      token.creator === user?.walletAddress &&
+      token.currentOwner !== user?.walletAddress
   );
-  
+
   const retiredTokens = tokens.filter((token) => token.isRetired);
 
   return (
@@ -300,7 +306,7 @@ const ProducerDashboard = ({ data }) => {
               <input
                 type="radio"
                 value="identifier"
-                checked={transferMethod === 'identifier'}
+                checked={transferMethod === "identifier"}
                 onChange={(e) => setTransferMethod(e.target.value)}
               />
               Transfer by Username/Factory ID
@@ -309,18 +315,20 @@ const ProducerDashboard = ({ data }) => {
               <input
                 type="radio"
                 value="address"
-                checked={transferMethod === 'address'}
+                checked={transferMethod === "address"}
                 onChange={(e) => setTransferMethod(e.target.value)}
               />
               Transfer by Wallet Address
             </label>
           </div>
 
-          {transferMethod === 'identifier' ? (
-            <EnhancedTransferComponent 
+          {transferMethod === "identifier" ? (
+            <EnhancedTransferComponent
               userTokens={userTokens}
               onTransferSuccess={async () => {
-                setTransferSuccess("Token transferred successfully! Refreshing data...");
+                setTransferSuccess(
+                  "Token transferred successfully! Refreshing data..."
+                );
                 // Add a small delay to ensure blockchain state is updated
                 setTimeout(async () => {
                   await fetchTokens();
@@ -335,119 +343,120 @@ const ProducerDashboard = ({ data }) => {
             />
           ) : (
             <form onSubmit={handleTransferToken} style={{ marginTop: "15px" }}>
-            <div style={{ marginBottom: "15px" }}>
-              <label
-                htmlFor="tokenSelect"
-                style={{ display: "block", marginBottom: "5px" }}
-              >
-                Select Token to Transfer:
-              </label>
-              <select
-                id="tokenSelect"
-                value={transferData.tokenId}
-                onChange={(e) =>
-                  setTransferData((prev) => ({
-                    ...prev,
-                    tokenId: e.target.value,
-                  }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                }}
-                required
-              >
-                <option value="">Select a token...</option>
-                {userTokens
-                  .filter((token) => token.creator === token.currentOwner)
-                  .map((token) => (
-                    <option key={token.tokenId} value={token.tokenId}>
-                      Token #{token.tokenId} - Factory: {token.factoryId}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div style={{ marginBottom: "15px" }}>
-              <label
-                htmlFor="recipientAddress"
-                style={{ display: "block", marginBottom: "5px" }}
-              >
-                Recipient Wallet Address:
-              </label>
-              <input
-                type="text"
-                id="recipientAddress"
-                value={transferData.recipientAddress}
-                onChange={(e) =>
-                  setTransferData((prev) => ({
-                    ...prev,
-                    recipientAddress: e.target.value,
-                  }))
-                }
-                placeholder="0x..."
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                }}
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn"
-              disabled={
-                loading ||
-                userTokens.filter(
-                  (token) => token.creator === token.currentOwner
-                ).length === 0
-              }
-              style={{
-                backgroundColor:
-                  userTokens.filter(
-                    (token) => token.creator === token.currentOwner
-                  ).length > 0
-                    ? "#2196F3"
-                    : "#ccc",
-                color: "white",
-                padding: "10px 20px",
-                border: "none",
-                borderRadius: "4px",
-                cursor:
+              <div style={{ marginBottom: "15px" }}>
+                <label
+                  htmlFor="tokenSelect"
+                  style={{ display: "block", marginBottom: "5px" }}
+                >
+                  Select Token to Transfer:
+                </label>
+                <select
+                  id="tokenSelect"
+                  value={transferData.tokenId}
+                  onChange={(e) =>
+                    setTransferData((prev) => ({
+                      ...prev,
+                      tokenId: e.target.value,
+                    }))
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                  }}
+                  required
+                >
+                  <option value="">Select a token...</option>
+                  {userTokens
+                    .filter((token) => token.creator === token.currentOwner)
+                    .map((token) => (
+                      <option key={token.tokenId} value={token.tokenId}>
+                        Token #{token.tokenId} - Factory: {token.factoryId}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div style={{ marginBottom: "15px" }}>
+                <label
+                  htmlFor="recipientAddress"
+                  style={{ display: "block", marginBottom: "5px" }}
+                >
+                  Recipient Wallet Address:
+                </label>
+                <input
+                  type="text"
+                  id="recipientAddress"
+                  value={transferData.recipientAddress}
+                  onChange={(e) =>
+                    setTransferData((prev) => ({
+                      ...prev,
+                      recipientAddress: e.target.value,
+                    }))
+                  }
+                  placeholder="0x..."
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                  }}
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="btn"
+                disabled={
                   loading ||
                   userTokens.filter(
                     (token) => token.creator === token.currentOwner
                   ).length === 0
-                    ? "not-allowed"
-                    : "pointer",
-                opacity:
-                  loading ||
-                  userTokens.filter(
-                    (token) => token.creator === token.currentOwner
-                  ).length === 0
-                    ? 0.6
-                    : 1,
-              }}
-            >
-              {loading ? "Transferring..." : "Transfer Token"}
-            </button>
-            {userTokens.filter((token) => token.creator === token.currentOwner)
-              .length === 0 && (
-              <p
+                }
                 style={{
-                  marginTop: "10px",
-                  color: "#d32f2f",
-                  fontSize: "14px",
+                  backgroundColor:
+                    userTokens.filter(
+                      (token) => token.creator === token.currentOwner
+                    ).length > 0
+                      ? "#2196F3"
+                      : "#ccc",
+                  color: "white",
+                  padding: "10px 20px",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor:
+                    loading ||
+                    userTokens.filter(
+                      (token) => token.creator === token.currentOwner
+                    ).length === 0
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    loading ||
+                    userTokens.filter(
+                      (token) => token.creator === token.currentOwner
+                    ).length === 0
+                      ? 0.6
+                      : 1,
                 }}
               >
-                No transferable tokens available. You can only transfer tokens
-                you currently own.
-              </p>
-            )}
-          </form>
+                {loading ? "Transferring..." : "Transfer Token"}
+              </button>
+              {userTokens.filter(
+                (token) => token.creator === token.currentOwner
+              ).length === 0 && (
+                <p
+                  style={{
+                    marginTop: "10px",
+                    color: "#d32f2f",
+                    fontSize: "14px",
+                  }}
+                >
+                  No transferable tokens available. You can only transfer tokens
+                  you currently own.
+                </p>
+              )}
+            </form>
           )}
 
           {transferSuccess && (
@@ -483,7 +492,14 @@ const ProducerDashboard = ({ data }) => {
 
         {/* My Tokens */}
         <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "15px",
+            }}
+          >
             <h3>My Active Credits ({userTokens.length})</h3>
             <button
               onClick={async () => {
@@ -493,13 +509,13 @@ const ProducerDashboard = ({ data }) => {
                 setTimeout(() => setTransferSuccess(null), 2000);
               }}
               style={{
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
               }}
             >
               🔄 Refresh
