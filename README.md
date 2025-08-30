@@ -1,39 +1,58 @@
-# HydroFi - Green Hydrogen Credit System
+# 🚀 HydroFi - Green Hydrogen Credit System
 
-A full-stack MERN application for managing green hydrogen production, certification, and carbon credit trading.
+A **full-stack MERN** application for managing green hydrogen production, certification, and carbon credit trading.
 
-## Features
+![Node.js](https://img.shields.io/badge/Node.js-16%2B-brightgreen) ![MongoDB](https://img.shields.io/badge/MongoDB-A32CC4-purple) ![React](https://img.shields.io/badge/React-18-blue) ![Ethereum](https://img.shields.io/badge/Ethereum-ERC--1155-blueviolet)![JavaScript](https://img.shields.io/badge/javascript-blue?logo=javascript)
 
-- **User Authentication**: Secure JWT-based authentication with role-based access
-- **Role-Based Dashboards**: Different interfaces for each user type
-- **Blockchain Integration**: ERC-1155 smart contracts for green hydrogen credits
-- **Token Management**: Mint, transfer, and retire carbon credits
-- **Real-time Data**: Dynamic dashboard content based on user roles
-- **Transfer by Identifier**: Transfer tokens using username or factory ID
-- **Audit Trail**: Complete transaction history and ownership tracking
-- **Responsive Design**: Modern UI that works across devices
+---
 
-## Blockchain Features
+## 👀 Take a look
 
-- **ERC-1155 Multi-Token Standard**: Efficient batch operations and metadata support
-- **Green Hydrogen Credits**: Each token represents verified green hydrogen production
-- **Ownership Tracking**: Complete history of token creation, transfers, and retirement
-- **Factory-Based Minting**: Tokens linked to specific production facilities
-- **Pausable Contract**: Emergency stop functionality for regulatory compliance
-- **Metadata Storage**: Rich token information including production details
+![homepage](./assets/homepaeg.jpg)
+![Heropage](./assets/hero.jpg)
 
-## User Roles
+---
 
-1. **Green Hydrogen Producer**: Manage production facilities and mint carbon credits
-2. **Regulatory Authority**: Oversee compliance, audit transactions, and advanced search
-3. **Industry Buyer**: Purchase and manage carbon credit portfolios
-4. **Certification Body**: Conduct inspections and issue certifications
+## 🛠️ Features
 
-## Technology Stack
+- 🔐 **User Authentication:** Secure JWT-based authentication with role-based access
+- 📊 **Role-Based Dashboards:** Tailored interfaces for each user type
+- ⛓️ **Blockchain Integration:** ERC-1155 smart contracts for green hydrogen credits
+- 💰 **Token Management:** Mint, transfer, and retire carbon credits
+- 🔄 **Real-time Data:** Dynamic dashboard content based on user roles
+- 🔑 **Transfer by Identifier:** Transfer tokens using username or factory ID
+- 📜 **Audit Trail:** Complete transaction history and ownership tracking
+- 📱 **Responsive Design:** Modern UI compatible with all devices
+
+---
+
+## ⛓️ Blockchain Features
+
+- 🌐 **ERC-1155 Multi-Token Standard:** Efficient batch operations & metadata support
+- 💨 **Green Hydrogen Credits:** Each token represents verified green hydrogen production
+- 🕵️ **Ownership Tracking:** Full history of token creation, transfers & retirement
+- 🏭 **Factory-Based Minting:** Tokens linked to specific production facilities
+- 🛑 **Pausable Contract:** Emergency stop functionality for compliance
+- 🗂️ **Metadata Storage:** Rich token info including production details
+
+---
+
+## 👥 User Roles
+
+| Role                       | Description                                             |
+| -------------------------- | ------------------------------------------------------- |
+| 🏭 Green Hydrogen Producer | Manage production & mint carbon credits                 |
+| 🏛️ Regulatory Authority    | Oversee compliance, audit transactions, advanced search |
+| 🛒 Industry Buyer          | Purchase and manage carbon credit portfolios            |
+| ✅ Certification Body      | Conduct inspections and issue certifications            |
+
+---
+
+## 💻 Technology Stack
 
 ### Backend
 
-- Node.js with Express.js
+- Node.js & Express.js
 - MongoDB with Mongoose
 - JWT for authentication
 - bcryptjs for password hashing
@@ -45,168 +64,117 @@ A full-stack MERN application for managing green hydrogen production, certificat
 - Axios for API calls
 - Context API for state management
 
-## Installation and Setup
+---
+
+## ⚙️ Installation and Setup
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- MongoDB (local or MongoDB Atlas)
+- Node.js (v16+)
+- MongoDB (local or Atlas)
 - npm or yarn
 
 ### Blockchain/Smart Contract Setup
 
-1. Navigate to the contracts directory:
+```
+cd contracts
+npm install
+```
 
-   ```bash
-   cd contracts
-   ```
+Create `.env` with:
 
-2. Install dependencies:
+```
+PRIVATE_KEY=0xac0974... # Replace for production
+```
 
-   ```bash
-   npm install
-   ```
+Start Hardhat local network:
 
-3. Create a `.env` file in the contracts directory with the following variables:
+```
+npx hardhat node
+```
 
-   ```env
-   PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-   # This is a default Hardhat test private key - change for production
-   ```
+Deploy contract:
 
-4. Start the Hardhat local blockchain network:
+```
+npx hardhat run scripts/deploy.js --network localhost
+```
 
-   ```bash
-   npx hardhat node
-   ```
+(Optional) List accounts:
 
-   This will:
-
-   - Start a local Ethereum blockchain on `http://localhost:8545`
-   - Create 20 test accounts with 10,000 ETH each
-   - Display account addresses and private keys for testing
-
-5. In a new terminal, deploy the smart contract:
-
-   ```bash
-   cd contracts
-   npx hardhat run scripts/deploy.js --network localhost
-   ```
-
-   This will:
-
-   - Deploy the `GreenHydrogenCredits` ERC-1155 contract
-   - Save contract data to `../backend/contract-data.json`
-   - Display the deployed contract address
-
-6. (Optional) List available accounts:
-
-   ```bash
-   npx hardhat run scripts/list-accounts.js --network localhost
-   ```
+```
+npx hardhat run scripts/list-accounts.js --network localhost
+```
 
 ### Backend Setup
 
-1. Navigate to the backend directory:
+```
+cd backend
+npm install
+```
 
-   ```bash
-   cd backend
-   ```
+Create `.env` with:
 
-2. Install dependencies:
+```
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/hydrofi_db
+JWT_SECRET=your_super_secret_jwt_key_here_change_in_production
+BLOCKCHAIN_RPC_URL=http://localhost:8545
+WALLET_PRIVATE_KEY=0xac0974...
+DEFAULT_WALLET_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+```
 
-   ```bash
-   npm install
-   ```
+Run wallet migration (if needed):
 
-3. Create a `.env` file with the following variables:
+```
+node migrate-wallets.js
+```
 
-   ```env
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/hydrofi_db
-   JWT_SECRET=your_super_secret_jwt_key_here_change_in_production
-   BLOCKCHAIN_RPC_URL=http://localhost:8545
-   WALLET_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-   DEFAULT_WALLET_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-   ```
+Start backend server:
 
-4. Run the wallet migration script (if you have existing users):
-
-   ```bash
-   node migrate-wallets.js
-   ```
-
-5. Start the backend server:
-
-   ```bash
-   npm run dev
-   ```
+```
+npm run dev
+```
 
 ### Frontend Setup
 
-1. Navigate to the frontend directory:
+```
+cd frontend
+npm install
+npm run dev
+```
 
-   ```bash
-   cd frontend
-   ```
+Access app at:
 
-2. Install dependencies:
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend API: [http://localhost:5000](http://localhost:5000)
+- Blockchain: [http://localhost:8545](http://localhost:8545)
 
-   ```bash
-   npm install
-   ```
+---
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-The application will be available at:
-
-- Frontend: <http://localhost:3000>
-- Backend API: <http://localhost:5000>
-- Blockchain: <http://localhost:8545>
-
-## Troubleshooting
+## 🛠️ Troubleshooting & Verification
 
 ### Common Issues
 
-1. **Contract deployment fails**:
-
-   - Ensure Hardhat node is running (`npx hardhat node`)
-   - Check that port 8545 is not occupied by another process
-   - Verify the private key in `.env` matches a Hardhat test account
-
-2. **Backend can't connect to blockchain**:
-
-   - Verify `BLOCKCHAIN_RPC_URL=http://localhost:8545` in backend `.env`
-   - Ensure contract is deployed and `contract-data.json` exists
-   - Check that the Hardhat node is still running
-
-3. **Tokens not appearing after minting**:
-
-   - Check browser console for errors
-   - Verify user has unique wallet address (run migration script)
-   - Ensure smart contract events are being emitted
-
-4. **Transfer fails**:
-   - Verify recipient exists in the system
-   - Check that token is owned by the sender
-   - Ensure blockchain connection is stable
+| Issue                     | Fix                                                                   |
+| ------------------------- | --------------------------------------------------------------------- |
+| Contract deployment fails | Ensure Hardhat node is running and port 8545 is free                  |
+| Backend can't connect     | Verify `.env` URLs, ensure contract deployed, Hardhat node running    |
+| Tokens not appearing      | Check console errors, unique wallet addresses, emitted events         |
+| Transfers fail            | Verify recipient exists & token ownership, check blockchain stability |
 
 ### Setup Verification
 
-After completing setup, verify everything works:
+- ✅ Hardhat node mining activity on transactions
+- ✅ Contract deployed with visible address
+- ✅ Backend logs "Blockchain service initialized successfully"
+- ✅ Frontend registration & login working
 
-1. **Check Hardhat node**: Should show mining activity when transactions occur
-2. **Test contract deployment**: Contract address should appear in console
-3. **Verify backend connection**: Check logs for "Blockchain service initialized successfully"
-4. **Test frontend**: Registration and login should work without errors
+---
 
-### Development Commands
+## 📡 Development Commands
 
-```bash
-# Reset blockchain (clears all data)
+```
+# Reset blockchain data
 cd contracts
 npx hardhat clean
 npx hardhat node
@@ -214,111 +182,100 @@ npx hardhat node
 # Redeploy contract
 npx hardhat run scripts/deploy.js --network localhost
 
-# Check accounts
+# List accounts
 npx hardhat run scripts/list-accounts.js --network localhost
 ```
 
-## API Endpoints
+---
+
+## 🔗 API Endpoints
 
 ### Authentication
 
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user (protected)
+| Endpoint                  | Description                  |
+| ------------------------- | ---------------------------- |
+| POST `/api/auth/register` | Register a new user          |
+| POST `/api/auth/login`    | Login user                   |
+| GET `/api/auth/me`        | Get current user (protected) |
 
 ### Dashboard
 
-- `GET /api/dashboard/data` - Get role-based dashboard data (protected)
-- `GET /api/dashboard/producer` - Get producer-specific data (protected)
-- `GET /api/dashboard/regulatory` - Get regulatory data (protected)
-- `GET /api/dashboard/buyer` - Get buyer data (protected)
-- `GET /api/dashboard/certification` - Get certification data (protected)
+| Endpoint                           | Description                           |
+| ---------------------------------- | ------------------------------------- |
+| GET `/api/dashboard/data`          | Role-based dashboard data (protected) |
+| GET `/api/dashboard/producer`      | Producer-specific data (protected)    |
+| GET `/api/dashboard/regulatory`    | Regulatory data (protected)           |
+| GET `/api/dashboard/buyer`         | Buyer data (protected)                |
+| GET `/api/dashboard/certification` | Certification data (protected)        |
 
-## Usage
+---
 
-1. **Registration**: Create an account by selecting your role and providing credentials
-2. **Login**: Access your role-specific dashboard
-3. **Dashboard**: View relevant data and perform actions based on your role
-4. **Navigation**: Use the navbar to switch between pages and logout
+## 📝 Usage Guide
 
-## Project Structure
+1. 📝 Register with selected role & credentials
+2. 🔐 Login to access role-specific dashboard
+3. 📊 View and manage data/actions as per role
+4. 🔄 Navigate using the navbar; logout when done
 
-```text
+---
+
+## 📂 Project Structure
+
+```
 HydroFi_Final/
 ├── backend/
-│   ├── middleware/
-│   │   └── auth.js
-│   ├── models/
-│   │   ├── User.js
-│   │   └── Transaction.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── dashboard.js
-│   │   └── blockchain.js
-│   ├── services/
-│   │   └── blockchainService.js
-│   ├── contract-data.json
-│   ├── migrate-wallets.js
-│   ├── .env
-│   ├── package.json
-│   └── server.js
+│   ├── middleware/auth.js
+│   ├── models/User.js, Transaction.js
+│   ├── routes/auth.js, dashboard.js, blockchain.js
+│   ├── services/blockchainService.js
+│   ├── contract-data.json, migrate-wallets.js, .env, package.json, server.js
 ├── contracts/
-│   ├── contracts/
-│   │   └── GreenHydrogenCredits.sol
-│   ├── scripts/
-│   │   ├── deploy.js
-│   │   └── list-accounts.js
-│   ├── artifacts/
-│   ├── cache/
-│   ├── .env
-│   ├── hardhat.config.js
-│   └── package.json
+│   ├── contracts/GreenHydrogenCredits.sol
+│   ├── scripts/deploy.js, list-accounts.js
+│   ├── artifacts/, cache/, .env, hardhat.config.js, package.json
 └── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   ├── auth/
-    │   │   ├── dashboards/
-    │   │   ├── EnhancedTransferComponent.jsx
-    │   │   ├── WalletHelper.jsx
-    │   │   ├── Home.jsx
-    │   │   └── Navbar.jsx
-    │   ├── contexts/
-    │   │   ├── AuthContext.jsx
-    │   │   └── BlockchainContext.jsx
-    │   ├── App.jsx
-    │   ├── index.css
-    │   └── main.jsx
-    ├── index.html
-    ├── package.json
-    └── vite.config.js
+    ├── src/components/auth/, dashboards/, EnhancedTransferComponent.jsx, WalletHelper.jsx, Home.jsx, Navbar.jsx
+    ├── contexts/AuthContext.jsx, BlockchainContext.jsx
+    ├── App.jsx, index.css, main.jsx
+    ├── index.html, package.json, vite.config.js
 ```
 
-## Security Features
+---
 
-- Password hashing with bcryptjs
-- JWT-based stateless authentication
-- Role-based route protection
-- Input validation and sanitization
-- CORS configuration
+## 🔐 Security Features
 
-## Future Enhancements
+- 🔒 Password hashing with bcryptjs
+- 🧩 JWT-based stateless authentication
+- 🛡️ Role-based route protection
+- 🧹 Input validation & sanitization
+- 🌍 CORS configuration
 
-- Real blockchain integration
-- Advanced analytics and reporting
-- Real-time notifications
-- File upload for certificates
-- Advanced search and filtering
-- Email verification
-- Password reset functionality
+---
 
-## Contributing
+## 🚀 Future Enhancements
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+- ⛓️ Real blockchain integration
+- 📈 Advanced analytics & reporting
+- 🔔 Real-time notifications
+- 📁 Certificate file uploads
+- 🔍 Advanced search & filtering
+- 📧 Email verification & password reset
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 🤝 Contributing
+
+1. 🍴 Fork the repository
+2. 🌿 Create a feature branch
+3. 💾 Commit changes
+4. 🚀 Push to branch
+5. 🔃 Create a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.  
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+
+---
