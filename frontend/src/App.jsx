@@ -14,6 +14,7 @@ import Home from "./components/Home";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Dashboard from "./components/dashboards/Dashboard";
+import WorldMap from "./components/WorldMap";
 import PrivateRoute from "./components/auth/PrivateRoute";
 
 function App() {
@@ -35,6 +36,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <Dashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/map"
+                element={
+                  <PrivateRoute>
+                    <WorldMap />
                   </PrivateRoute>
                 }
               />
