@@ -17,11 +17,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         const response = await axios.get("/api/dashboard/data", {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
         setDashboardData(response.data.data);
       } catch (error) {
@@ -68,8 +68,14 @@ const Dashboard = () => {
         return (
           <div className="card">
             <h2>Unknown Role</h2>
-            <p>Your role "{user?.role}" is not recognized. Please contact support.</p>
-            <p>Available roles: Green Hydrogen Producer, Regulatory Authority, Industry Buyer, Certification Body</p>
+            <p>
+              Your role "{user?.role}" is not recognized. Please contact
+              support.
+            </p>
+            <p>
+              Available roles: Green Hydrogen Producer, Regulatory Authority,
+              Industry Buyer, Certification Body
+            </p>
           </div>
         );
     }

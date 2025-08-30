@@ -1,51 +1,51 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-  transactionHash: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  type: {
-    type: String,
-    enum: ['mint', 'transfer', 'retire'],
-    required: true
-  },
-  tokenId: {
-    type: String,
-    required: true
-  },
-  from: {
-    type: String,
-    default: null
-  },
-  to: {
-    type: String,
-    default: null
-  },
-  factoryId: {
-    type: String,
-    default: null
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  blockNumber: {
-    type: Number,
-    default: null
-  },
-  gasUsed: {
-    type: String,
-    default: null
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  }
+    transactionHash: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    type: {
+        type: String,
+        enum: ['mint', 'transfer', 'retire'],
+        required: true
+    },
+    tokenId: {
+        type: String,
+        required: true
+    },
+    from: {
+        type: String,
+        default: null
+    },
+    to: {
+        type: String,
+        default: null
+    },
+    factoryId: {
+        type: String,
+        default: null
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    blockNumber: {
+        type: Number,
+        default: null
+    },
+    gasUsed: {
+        type: String,
+        default: null
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now
+    }
 }, {
-  timestamps: true
+    timestamps: true
 });
 
 // Index for efficient queries

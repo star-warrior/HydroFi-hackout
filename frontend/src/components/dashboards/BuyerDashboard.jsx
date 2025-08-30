@@ -6,23 +6,17 @@ const BuyerDashboard = ({ data }) => {
   const [buyerData, setBuyerData] = useState(null);
   const [transferToAddress, setTransferToAddress] = useState("");
   const [selectedTokenId, setSelectedTokenId] = useState("");
-  
-  const { 
-    tokens, 
-    loading, 
-    error, 
-    fetchTokens, 
-    transferToken, 
-    retireToken 
-  } = useBlockchain();
+
+  const { tokens, loading, error, fetchTokens, transferToken, retireToken } =
+    useBlockchain();
 
   useEffect(() => {
     const fetchBuyerData = async () => {
       try {
         const response = await axios.get("/api/dashboard/buyer", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
         setBuyerData(response.data.data);
       } catch (error) {
@@ -36,7 +30,7 @@ const BuyerDashboard = ({ data }) => {
 
   const handleTransferToken = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedTokenId || !transferToAddress.trim()) {
       alert("Please select a token and enter a recipient address");
       return;
@@ -53,7 +47,11 @@ const BuyerDashboard = ({ data }) => {
   };
 
   const handleRetireToken = async (tokenId) => {
-    if (window.confirm("Are you sure you want to retire this token? This action cannot be undone.")) {
+    if (
+      window.confirm(
+        "Are you sure you want to retire this token? This action cannot be undone."
+      )
+    ) {
       try {
         await retireToken(tokenId);
         alert("Token retired successfully!");
@@ -63,8 +61,8 @@ const BuyerDashboard = ({ data }) => {
     }
   };
 
-  const ownedTokens = tokens.filter(token => !token.isRetired);
-  const retiredTokens = tokens.filter(token => token.isRetired);
+  const ownedTokens = tokens.filter((token) => !token.isRetired);
+  const retiredTokens = tokens.filter((token) => token.isRetired);
 
   return (
     <div>
@@ -92,7 +90,9 @@ const BuyerDashboard = ({ data }) => {
         {/* My Tokens */}
         <div className="card">
           <h3>My Credits ({ownedTokens.length})</h3>
-          <div style={{ marginTop: "15px", maxHeight: "400px", overflowY: "auto" }}>
+          <div
+            style={{ marginTop: "15px", maxHeight: "400px", overflowY: "auto" }}
+          >
             {ownedTokens.length === 0 ? (
               <p>No credits found. Purchase some credits to get started!</p>
             ) : (
@@ -104,22 +104,42 @@ const BuyerDashboard = ({ data }) => {
                     border: "1px solid #eee",
                     borderRadius: "4px",
                     marginBottom: "10px",
-                    backgroundColor: "#f9f9f9"
+                    backgroundColor: "#f9f9f9",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
                     <div>
                       <strong>Token #{token.tokenId}</strong>
                       <br />
                       <span>Factory: {token.factoryId}</span>
                       <br />
-                      <span>Created: {new Date(token.creationTimestamp).toLocaleDateString()}</span>
+                      <span>
+                        Created:{" "}
+                        {new Date(token.creationTimestamp).toLocaleDateString()}
+                      </span>
                       <br />
                       <span>Creator: {token.creator.slice(0, 10)}...</span>
                       <br />
-                      <span>Purchased: {new Date(token.lastTransferTimestamp).toLocaleDateString()}</span>
+                      <span>
+                        Purchased:{" "}
+                        {new Date(
+                          token.lastTransferTimestamp
+                        ).toLocaleDateString()}
+                      </span>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                      }}
+                    >
                       <button
                         onClick={() => handleRetireToken(token.tokenId)}
                         style={{
@@ -129,7 +149,7 @@ const BuyerDashboard = ({ data }) => {
                           padding: "5px 10px",
                           borderRadius: "4px",
                           cursor: "pointer",
-                          fontSize: "12px"
+                          fontSize: "12px",
                         }}
                       >
                         Retire
@@ -147,7 +167,10 @@ const BuyerDashboard = ({ data }) => {
           <h3>Transfer Credit</h3>
           <form onSubmit={handleTransferToken} style={{ marginTop: "15px" }}>
             <div style={{ marginBottom: "15px" }}>
-              <label htmlFor="tokenSelect" style={{ display: "block", marginBottom: "5px" }}>
+              <label
+                htmlFor="tokenSelect"
+                style={{ display: "block", marginBottom: "5px" }}
+              >
                 Select Token:
               </label>
               <select
@@ -158,7 +181,7 @@ const BuyerDashboard = ({ data }) => {
                   width: "100%",
                   padding: "8px",
                   border: "1px solid #ddd",
-                  borderRadius: "4px"
+                  borderRadius: "4px",
                 }}
                 required
               >
@@ -171,7 +194,10 @@ const BuyerDashboard = ({ data }) => {
               </select>
             </div>
             <div style={{ marginBottom: "15px" }}>
-              <label htmlFor="transferAddress" style={{ display: "block", marginBottom: "5px" }}>
+              <label
+                htmlFor="transferAddress"
+                style={{ display: "block", marginBottom: "5px" }}
+              >
                 Recipient Address:
               </label>
               <input
@@ -184,13 +210,13 @@ const BuyerDashboard = ({ data }) => {
                   width: "100%",
                   padding: "8px",
                   border: "1px solid #ddd",
-                  borderRadius: "4px"
+                  borderRadius: "4px",
                 }}
                 required
               />
             </div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn"
               disabled={loading || ownedTokens.length === 0}
               style={{
@@ -199,23 +225,28 @@ const BuyerDashboard = ({ data }) => {
                 padding: "10px 20px",
                 border: "none",
                 borderRadius: "4px",
-                cursor: loading || ownedTokens.length === 0 ? "not-allowed" : "pointer",
-                opacity: loading || ownedTokens.length === 0 ? 0.6 : 1
+                cursor:
+                  loading || ownedTokens.length === 0
+                    ? "not-allowed"
+                    : "pointer",
+                opacity: loading || ownedTokens.length === 0 ? 0.6 : 1,
               }}
             >
               {loading ? "Transferring..." : "Transfer Token"}
             </button>
           </form>
-          
+
           {error && (
-            <div style={{
-              marginTop: "15px",
-              padding: "10px",
-              backgroundColor: "#f8d7da",
-              border: "1px solid #f5c6cb",
-              borderRadius: "4px",
-              color: "#721c24"
-            }}>
+            <div
+              style={{
+                marginTop: "15px",
+                padding: "10px",
+                backgroundColor: "#f8d7da",
+                border: "1px solid #f5c6cb",
+                borderRadius: "4px",
+                color: "#721c24",
+              }}
+            >
               Error: {error}
             </div>
           )}
@@ -262,7 +293,13 @@ const BuyerDashboard = ({ data }) => {
         {retiredTokens.length > 0 && (
           <div className="card">
             <h3>Retired Credits ({retiredTokens.length})</h3>
-            <div style={{ marginTop: "15px", maxHeight: "300px", overflowY: "auto" }}>
+            <div
+              style={{
+                marginTop: "15px",
+                maxHeight: "300px",
+                overflowY: "auto",
+              }}
+            >
               {retiredTokens.map((token) => (
                 <div
                   key={token.tokenId}
@@ -272,14 +309,17 @@ const BuyerDashboard = ({ data }) => {
                     borderRadius: "4px",
                     marginBottom: "10px",
                     backgroundColor: "#f5f5f5",
-                    opacity: 0.7
+                    opacity: 0.7,
                   }}
                 >
                   <strong>Token #{token.tokenId}</strong>
                   <br />
                   <span>Factory: {token.factoryId}</span>
                   <br />
-                  <span>Retired: {new Date(token.retirementTimestamp).toLocaleDateString()}</span>
+                  <span>
+                    Retired:{" "}
+                    {new Date(token.retirementTimestamp).toLocaleDateString()}
+                  </span>
                 </div>
               ))}
             </div>

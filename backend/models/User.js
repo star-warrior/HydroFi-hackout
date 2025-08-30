@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
     },
     factoryName: {
         type: String,
-        required: function() {
+        required: function () {
             return this.role === 'Green Hydrogen Producer';
         },
         trim: true,
@@ -52,20 +52,20 @@ const userSchema = new mongoose.Schema({
 function generateFactoryId(factoryName) {
     // Convert factory name to uppercase and remove spaces
     const cleanName = factoryName.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    
+
     // Take first 4 characters of cleaned name (pad with X if shorter)
     const namePrefix = (cleanName + 'XXXX').substring(0, 4);
-    
+
     // Generate random 4-digit number
     const randomNum = Math.floor(1000 + Math.random() * 9000);
-    
+
     // Generate random 4-character suffix
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let suffix = '';
     for (let i = 0; i < 4; i++) {
         suffix += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     return `${namePrefix}${randomNum}${suffix}`;
 }
 
@@ -77,12 +77,12 @@ userSchema.pre('save', async function (next) {
             const salt = await bcrypt.genSalt(10);
             this.password = await bcrypt.hash(this.password, salt);
         }
-        
+
         // Generate factory ID for producers if not already set
         if (this.role === 'Green Hydrogen Producer' && this.factoryName && !this.factoryId) {
             let factoryId;
             let isUnique = false;
-            
+
             // Keep generating until we get a unique factory ID
             while (!isUnique) {
                 factoryId = generateFactoryId(this.factoryName);
@@ -91,10 +91,10 @@ userSchema.pre('save', async function (next) {
                     isUnique = true;
                 }
             }
-            
+
             this.factoryId = factoryId;
         }
-        
+
         next();
     } catch (error) {
         next(error);
@@ -102,7 +102,7 @@ userSchema.pre('save', async function (next) {
 });
 
 // Validate that producers have factoryId after save
-userSchema.post('save', function(doc, next) {
+userSchema.post('save', function (doc, next) {
     if (doc.role === 'Green Hydrogen Producer' && !doc.factoryId) {
         const error = new Error('Factory ID generation failed for producer');
         return next(error);

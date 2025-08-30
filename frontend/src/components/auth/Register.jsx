@@ -36,7 +36,10 @@ const Register = () => {
     setError("");
 
     // Validate factory name for producers
-    if (formData.role === "Green Hydrogen Producer" && !formData.factoryName.trim()) {
+    if (
+      formData.role === "Green Hydrogen Producer" &&
+      !formData.factoryName.trim()
+    ) {
       setError("Factory name is required for Green Hydrogen Producers");
       return;
     }
