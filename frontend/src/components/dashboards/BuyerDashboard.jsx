@@ -61,8 +61,8 @@ const BuyerDashboard = ({ data }) => {
     }
   };
 
-  const ownedTokens = tokens.filter((token) => !token.isRetired);
-  const retiredTokens = tokens.filter((token) => token.isRetired);
+  const ownedTokens = (tokens || []).filter((token) => token && !token.isRetired);
+  const retiredTokens = (tokens || []).filter((token) => token && token.isRetired);
 
   return (
     <div>
@@ -77,7 +77,7 @@ const BuyerDashboard = ({ data }) => {
           <p>Retired Credits</p>
         </div>
         <div className="stat-card">
-          <h3>{tokens.length}</h3>
+          <h3>{(tokens || []).length}</h3>
           <p>Total Credits</p>
         </div>
         <div className="stat-card">
@@ -117,20 +117,18 @@ const BuyerDashboard = ({ data }) => {
                     <div>
                       <strong>Token #{token.tokenId}</strong>
                       <br />
-                      <span>Factory: {token.factoryId}</span>
+                      <span>Factory: {token.factoryId || 'Unknown'}</span>
                       <br />
                       <span>
                         Created:{" "}
-                        {new Date(token.creationTimestamp).toLocaleDateString()}
+                        {token.creationTimestamp ? new Date(token.creationTimestamp).toLocaleDateString() : 'Unknown'}
                       </span>
                       <br />
-                      <span>Creator: {token.creator.slice(0, 10)}...</span>
+                      <span>Creator: {token.creator ? token.creator.slice(0, 10) + '...' : 'Unknown'}</span>
                       <br />
                       <span>
                         Purchased:{" "}
-                        {new Date(
-                          token.lastTransferTimestamp
-                        ).toLocaleDateString()}
+                        {token.lastTransferTimestamp ? new Date(token.lastTransferTimestamp).toLocaleDateString() : 'Unknown'}
                       </span>
                     </div>
                     <div
