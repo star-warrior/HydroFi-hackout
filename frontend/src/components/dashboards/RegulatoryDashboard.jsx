@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useBlockchain } from "../../contexts/BlockchainContext";
+import StatisticalDashboard from "./StatisticalDashboard";
 
 const RegulatoryDashboard = ({ data }) => {
   const [regulatoryData, setRegulatoryData] = useState(null);
@@ -28,11 +29,8 @@ const RegulatoryDashboard = ({ data }) => {
   const {
     tokens,
     transactions,
-    stats,
     loading,
-    error,
     fetchTokens,
-    fetchStats,
     fetchTransactions,
   } = useBlockchain();
 
@@ -66,9 +64,8 @@ const RegulatoryDashboard = ({ data }) => {
     fetchRegulatoryData();
     fetchFactories();
     fetchTokens();
-    fetchStats();
     fetchTransactions();
-  }, [fetchTokens, fetchStats, fetchTransactions]);
+  }, [fetchTokens, fetchTransactions]);
 
   const handleSearch = async () => {
     setSearching(true);
@@ -151,22 +148,22 @@ const RegulatoryDashboard = ({ data }) => {
 
   return (
     <div>
-      {/* Stats Grid */}
+      {/* Stats Grid - Using basic token counts */}
       <div className="stats-grid">
         <div className="stat-card">
-          <h3>{stats?.totalMinted || 0}</h3>
-          <p>Total Minted</p>
+          <h3>{tokens.length}</h3>
+          <p>Total Tokens</p>
         </div>
         <div className="stat-card">
-          <h3>{stats?.totalTransferred || 0}</h3>
+          <h3>{tokens.filter(t => t.currentOwner !== t.creator).length}</h3>
           <p>Total Transferred</p>
         </div>
         <div className="stat-card">
-          <h3>{stats?.totalRetired || 0}</h3>
+          <h3>{tokens.filter(t => t.isRetired).length}</h3>
           <p>Total Retired</p>
         </div>
         <div className="stat-card">
-          <h3>{stats?.totalActive || 0}</h3>
+          <h3>{tokens.filter(t => !t.isRetired).length}</h3>
           <p>Active Credits</p>
         </div>
       </div>
@@ -174,7 +171,7 @@ const RegulatoryDashboard = ({ data }) => {
       {/* Tab Navigation */}
       <div style={{ marginBottom: "20px" }}>
         <div style={{ borderBottom: "1px solid #ddd" }}>
-          {["overview", "search", "tokens", "transactions"].map((tab) => (
+          {["overview", "analytics", "search", "tokens", "transactions"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -188,7 +185,7 @@ const RegulatoryDashboard = ({ data }) => {
                 borderBottom: activeTab === tab ? "2px solid #007bff" : "none",
               }}
             >
-              {tab === "search" ? "Advanced Search" : tab}
+              {tab === "search" ? "Advanced Search" : tab === "analytics" ? "Statistical Analysis" : tab}
             </button>
           ))}
         </div>
@@ -200,85 +197,81 @@ const RegulatoryDashboard = ({ data }) => {
           <div className="card">
             <h3>Blockchain System Overview</h3>
             <div style={{ marginTop: "15px" }}>
-              {stats ? (
-                <div>
+              <div>
+                <div
+                  style={{
+                    marginBottom: "10px",
+                    padding: "10px",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <strong>Network Activity</strong>
+                  <br />
+                  Total Tokens: {tokens.length}
+                  <br />
+                  Active Credits: {tokens.filter(t => !t.isRetired).length}
+                  <br />
+                  Retirement Rate:{" "}
+                  {tokens.length > 0
+                    ? Math.round(
+                        (tokens.filter(t => t.isRetired).length / tokens.length) * 100
+                      )
+                    : 0}
+                  %
+                </div>
+
+                <div style={{ marginTop: "15px" }}>
+                  <strong>Credit Distribution:</strong>
                   <div
                     style={{
-                      marginBottom: "10px",
-                      padding: "10px",
-                      backgroundColor: "#f8f9fa",
+                      width: "100%",
+                      backgroundColor: "#f0f0f0",
                       borderRadius: "4px",
+                      marginTop: "5px",
+                      height: "20px",
+                      display: "flex",
                     }}
                   >
-                    <strong>Network Activity</strong>
-                    <br />
-                    Total Transactions: {stats.totalTransactions}
-                    <br />
-                    Active Credits: {stats.totalActive}
-                    <br />
-                    Retirement Rate:{" "}
-                    {stats.totalMinted > 0
-                      ? Math.round(
-                          (stats.totalRetired / stats.totalMinted) * 100
-                        )
-                      : 0}
-                    %
-                  </div>
-
-                  <div style={{ marginTop: "15px" }}>
-                    <strong>Credit Distribution:</strong>
                     <div
                       style={{
-                        width: "100%",
-                        backgroundColor: "#f0f0f0",
-                        borderRadius: "4px",
-                        marginTop: "5px",
-                        height: "20px",
+                        width: `${
+                          tokens.length > 0
+                            ? (tokens.filter(t => !t.isRetired).length / tokens.length) * 100
+                            : 0
+                        }%`,
+                        backgroundColor: "#28a745",
+                        borderRadius: "4px 0 0 4px",
                         display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontSize: "11px",
                       }}
                     >
-                      <div
-                        style={{
-                          width: `${
-                            stats.totalMinted > 0
-                              ? (stats.totalActive / stats.totalMinted) * 100
-                              : 0
-                          }%`,
-                          backgroundColor: "#28a745",
-                          borderRadius: "4px 0 0 4px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontSize: "11px",
-                        }}
-                      >
-                        Active
-                      </div>
-                      <div
-                        style={{
-                          width: `${
-                            stats.totalMinted > 0
-                              ? (stats.totalRetired / stats.totalMinted) * 100
-                              : 0
-                          }%`,
-                          backgroundColor: "#6c757d",
-                          borderRadius: "0 4px 4px 0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontSize: "11px",
-                        }}
-                      >
-                        Retired
-                      </div>
+                      Active
+                    </div>
+                    <div
+                      style={{
+                        width: `${
+                          tokens.length > 0
+                            ? (tokens.filter(t => t.isRetired).length / tokens.length) * 100
+                            : 0
+                        }%`,
+                        backgroundColor: "#6c757d",
+                        borderRadius: "0 4px 4px 0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontSize: "11px",
+                      }}
+                    >
+                      Retired
                     </div>
                   </div>
                 </div>
-              ) : (
-                <p>Loading statistics...</p>
-              )}
+              </div>
             </div>
           </div>
 
@@ -397,6 +390,13 @@ const RegulatoryDashboard = ({ data }) => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === "analytics" && (
+        <div>
+          {/* Statistical Analysis Dashboard */}
+          <StatisticalDashboard />
         </div>
       )}
 
@@ -1395,25 +1395,6 @@ const RegulatoryDashboard = ({ data }) => {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {error && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            backgroundColor: "#f8d7da",
-            border: "1px solid #f5c6cb",
-            borderRadius: "4px",
-            padding: "15px",
-            color: "#721c24",
-            maxWidth: "300px",
-            zIndex: 1001,
-          }}
-        >
-          Error: {error}
         </div>
       )}
     </div>

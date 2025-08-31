@@ -708,4 +708,76 @@ router.post('/transfer-by-identifier', auth, async (req, res) => {
     }
 });
 
+// GET /api/blockchain/statistical-analysis - Get statistical analysis data (Admin only)
+router.get('/statistical-analysis', auth, requireAdmin, async (req, res) => {
+    try {
+        const { timeRange = '30d' } = req.query;
+        console.log('Fetching statistical analysis for time range:', timeRange);
+
+        // Generate mock data for now - this would use real blockchain data in production
+        const mockData = generateStatisticalMockData(timeRange);
+
+        res.json({
+            success: true,
+            data: mockData
+        });
+    } catch (error) {
+        console.error('Statistical analysis error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+// Helper function to generate mock statistical data
+function generateStatisticalMockData(timeRange) {
+    const timeLabels = [];
+    const currentDate = new Date();
+    const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : timeRange === "90d" ? 90 : 365;
+
+    for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(currentDate);
+        date.setDate(date.getDate() - i);
+        timeLabels.push(date.toISOString().split("T")[0]);
+    }
+
+    const issuanceOverTime = timeLabels.map((date, index) => ({
+        date,
+        issued: Math.floor(Math.random() * 50) + 10 + (index * 2),
+        cumulative: (index + 1) * 25 + Math.floor(Math.random() * 100),
+    }));
+
+    const transfersRetirements = timeLabels.slice(-12).map((date) => ({
+        date,
+        issued: Math.floor(Math.random() * 40) + 15,
+        transferred: Math.floor(Math.random() * 25) + 5,
+        retired: Math.floor(Math.random() * 20) + 8,
+    }));
+
+    const producerRankings = [
+        { name: "HydroTech Industries", factory: "Plant Alpha", credits: 1250, region: "California" },
+        { name: "GreenH2 Corp", factory: "Facility Beta", credits: 980, region: "Texas" },
+        { name: "CleanEnergy Ltd", factory: "Site Gamma", credits: 875, region: "New York" },
+        { name: "EcoHydrogen Inc", factory: "Plant Delta", credits: 720, region: "Florida" },
+        { name: "SustainableFuel Co", factory: "Facility Epsilon", credits: 650, region: "Oregon" },
+        { name: "FutureEnergy Corp", factory: "Plant Zeta", credits: 580, region: "Arizona" },
+        { name: "BioHydrogen Ltd", factory: "Site Eta", credits: 520, region: "Colorado" },
+        { name: "RenewableH2 Inc", factory: "Facility Theta", credits: 480, region: "Nevada" },
+    ];
+
+    const industryConsumption = [
+        { industry: "Steel Manufacturing", credits: 2800, percentage: 35 },
+        { industry: "Ammonia Production", credits: 2000, percentage: 25 },
+        { industry: "Transportation", credits: 1600, percentage: 20 },
+        { industry: "Chemical Processing", credits: 800, percentage: 10 },
+        { industry: "Power Generation", credits: 480, percentage: 6 },
+        { industry: "Other Industries", credits: 320, percentage: 4 },
+    ];
+
+    return {
+        issuanceOverTime,
+        transfersRetirements,
+        producerRankings,
+        industryConsumption
+    };
+}
+
 module.exports = router;
