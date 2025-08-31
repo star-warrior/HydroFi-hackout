@@ -25,39 +25,29 @@ const Register = () => {
   ];
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Validate factory name for producers
-    if (
-      formData.role === "Green Hydrogen Producer" &&
-      !formData.factoryName.trim()
-    ) {
+    if (formData.role === "Green Hydrogen Producer" && !formData.factoryName.trim()) {
       setError("Factory name is required for Green Hydrogen Producers");
       return;
     }
 
-    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
-    // Validate password length
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters long");
       return;
     }
 
     setLoading(true);
-
     const { confirmPassword, ...registrationData } = formData;
     const result = await register(registrationData);
 
@@ -66,126 +56,154 @@ const Register = () => {
     } else {
       setError(result.message);
     }
-
     setLoading(false);
   };
 
   return (
-    <div className="container">
-      <div className="form card">
-        <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
-          Register for HydroFi
-        </h2>
+    <div
+      className="min-h-screen flex items-center justify-center p-6 bg-gray-900 text-gray-300"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=2070&auto=format&fit=crop')`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="w-full max-w-md p-10 space-y-8 bg-gray-800 bg-opacity-60 backdrop-blur-lg rounded-3xl shadow-2xl">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold text-white">Discover a space</h2>
+          <p className="text-gray-200 text-sm">
+            where <span className="font-semibold text-white">calm</span> meets{" "}
+            <span className="font-semibold text-white">clarity</span>
+          </p>
+        </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {/* Error */}
+        {error && (
+          <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-2 rounded-lg text-center text-sm">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-400">Username</label>
             <input
               type="text"
-              id="username"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              required
               placeholder="Enter your username"
               minLength={3}
               maxLength={30}
+              required
+              className="w-full px-4 py-3 rounded-lg bg-gray-700 bg-opacity-50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          {/* Email */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-400">Email</label>
             <input
               type="email"
-              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required
               placeholder="Enter your email"
+              required
+              className="w-full px-4 py-3 rounded-lg bg-gray-700 bg-opacity-50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="role">Role</label>
+          {/* Role */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-400">Role</label>
             <select
-              id="role"
               name="role"
               value={formData.role}
               onChange={handleChange}
               required
+              className="w-full px-4 py-3 rounded-lg bg-gray-700 bg-opacity-50 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition appearance-none"
             >
               {roles.map((role) => (
-                <option key={role} value={role}>
+                <option key={role} value={role} className="bg-gray-800">
                   {role}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Factory Name */}
           {formData.role === "Green Hydrogen Producer" && (
-            <div className="form-group">
-              <label htmlFor="factoryName">Factory Name</label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-400">Factory Name</label>
               <input
                 type="text"
-                id="factoryName"
                 name="factoryName"
                 value={formData.factoryName}
                 onChange={handleChange}
-                required
-                placeholder="Enter your factory name (e.g., Green Energy Plant)"
+                placeholder="Your factory's name"
                 maxLength={100}
+                required
+                className="w-full px-4 py-3 rounded-lg bg-gray-700 bg-opacity-50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
               />
-              <small style={{ color: "#666", fontSize: "12px" }}>
-                A unique 12-character Factory ID will be generated automatically
+              <small className="text-gray-400 text-xs block mt-1">
+                A unique 12-character Factory ID will be generated automatically.
               </small>
             </div>
           )}
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+          {/* Password */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-400">Password</label>
             <input
               type="password"
-              id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              required
-              placeholder="Enter your password"
+              placeholder="Create a strong password"
               minLength={6}
+              required
+              className="w-full px-4 py-3 rounded-lg bg-gray-700 bg-opacity-50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+          {/* Confirm Password */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-400">Confirm Password</label>
             <input
               type="password"
-              id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              required
               placeholder="Confirm your password"
+              required
+              className="w-full px-4 py-3 rounded-lg bg-gray-700 bg-opacity-50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
             />
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="btn"
-            style={{ width: "100%", marginTop: "10px" }}
             disabled={loading}
+            className="w-full py-3 mt-2 px-6 bg-gray-200 text-gray-900 font-semibold rounded-lg hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Registering..." : "Register"}
+            {loading ? "Creating Account..." : "Start your journey"}
           </button>
         </form>
 
-        <div className="auth-links">
-          <p>
-            Already have an account? <Link to="/login">Login here</Link>
-          </p>
-        </div>
+        {/* Login Link */}
+        <p className="mt-6 text-center text-sm text-gray-400">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="font-medium text-green-400 hover:text-green-300 hover:underline"
+          >
+            Login here
+          </Link>
+        </p>
       </div>
     </div>
   );

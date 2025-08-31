@@ -17,43 +17,35 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("/api/dashboard/data", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setDashboardData(response.data.data);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Mock data based on user role
+        const mockData = {
+          title: `${user.role} Dashboard`,
+          welcomeMessage: `Welcome back, ${user.email}!`,
+          stats: { /* role-specific stats */ }
+        };
+        setDashboardData(mockData);
       } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
         setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDashboardData();
-  }, []);
+    if(user){
+        fetchDashboardData();
+    }
+  }, [user]);
 
   if (loading) {
-    return (
-      <div className="container">
-        <div className="loading">
-          <h3>Loading dashboard...</h3>
-        </div>
-      </div>
-    );
+    return <div className="p-8 text-center"><h3>Loading dashboard...</h3></div>;
   }
 
   if (error) {
-    return (
-      <div className="container">
-        <div className="alert alert-error">{error}</div>
-      </div>
-    );
+    return <div className="p-8 text-center text-red-500">{error}</div>;
   }
 
-  // Route to specific dashboard based on user role
   const renderDashboard = () => {
     switch (user?.role) {
       case "Green Hydrogen Producer":
@@ -65,28 +57,16 @@ const Dashboard = () => {
       case "Certification Body":
         return <CertificationDashboard data={dashboardData} />;
       default:
-        return (
-          <div className="card">
-            <h2>Unknown Role</h2>
-            <p>
-              Your role "{user?.role}" is not recognized. Please contact
-              support.
-            </p>
-            <p>
-              Available roles: Green Hydrogen Producer, Regulatory Authority,
-              Industry Buyer, Certification Body
-            </p>
-          </div>
-        );
+        return <div className="p-6 bg-red-100 rounded-lg"><h2>Unknown Role</h2><p>Your role "{user?.role}" is not recognized.</p></div>;
     }
   };
 
   return (
-    <div className="container">
+    <div className="p-8">
       {dashboardData && (
         <div>
-          <h1 style={{ marginBottom: "30px" }}>{dashboardData.title}</h1>
-          <div className="alert alert-success" style={{ marginBottom: "30px" }}>
+          <h1 className="text-3xl font-bold mb-2">{dashboardData.title}</h1>
+          <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-6">
             {dashboardData.welcomeMessage}
           </div>
           {renderDashboard()}
@@ -95,5 +75,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;

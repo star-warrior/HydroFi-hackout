@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "../../contexts/AuthContext";
 import { useBlockchain } from "../../contexts/BlockchainContext";
 import WalletHelper from "../WalletHelper";
 import EnhancedTransferComponent from "../EnhancedTransferComponent";
+import { useAuth } from "../../contexts/AuthContext";
+// import useAuth from "../../contexts/AuthContext";
+
 
 const ProducerDashboard = ({ data }) => {
   const [producerData, setProducerData] = useState(null);
@@ -15,7 +17,8 @@ const ProducerDashboard = ({ data }) => {
   });
   const [transferSuccess, setTransferSuccess] = useState(null);
   const [transferError, setTransferError] = useState(null);
-  const [transferMethod, setTransferMethod] = useState("identifier"); // 'identifier' or 'address'
+  const [transferMethod, setTransferMethod] = useState("identifier");
+  const [retiringTokenId, setRetiringTokenId] = useState(null);
 
   const { user } = useAuth();
   const { tokens, loading, error, mintTokens, fetchTokens, retireToken } =
@@ -54,7 +57,6 @@ const ProducerDashboard = ({ data }) => {
       );
       setQuantity(1);
 
-      // Clear success message after 5 seconds
       setTimeout(() => setMintingSuccess(null), 5000);
     } catch (err) {
       console.error("Minting failed:", err);
@@ -67,11 +69,17 @@ const ProducerDashboard = ({ data }) => {
         "Are you sure you want to retire this token? This action cannot be undone."
       )
     ) {
+      setRetiringTokenId(tokenId);
       try {
         await retireToken(tokenId);
         alert("Token retired successfully!");
+        // Refresh tokens after retirement to update the UI
+        await fetchTokens();
       } catch (err) {
         console.error("Retirement failed:", err);
+        alert("Retirement failed. Please try again.");
+      } finally {
+        setRetiringTokenId(null);
       }
     }
   };
@@ -84,7 +92,6 @@ const ProducerDashboard = ({ data }) => {
       return;
     }
 
-    // Validate that user owns the token
     const token = userTokens.find((t) => t.tokenId === transferData.tokenId);
     if (!token) {
       setTransferError("Token not found or you don't own this token");
@@ -112,7 +119,6 @@ const ProducerDashboard = ({ data }) => {
         setTransferData({ tokenId: "", recipientAddress: "" });
         setTransferError(null);
 
-        // Add a small delay to ensure blockchain state is updated
         setTimeout(async () => {
           await fetchTokens();
           setTransferSuccess(
@@ -129,29 +135,11 @@ const ProducerDashboard = ({ data }) => {
     }
   };
 
-  // Filter tokens based on ownership and creation
-  // Active tokens: Currently owned by user (regardless of who created them)
+  // Filter tokens based on ownership and retired status
   const userTokens = tokens.filter(
     (token) => !token.isRetired && token.currentOwner === user?.walletAddress
   );
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Tokens updated:", tokens.length);
-    console.log("User wallet:", user?.walletAddress);
-    console.log("Active tokens for user:", userTokens.length);
-    console.log(
-      "Token details:",
-      tokens.map((t) => ({
-        id: t.tokenId,
-        creator: t.creator,
-        currentOwner: t.currentOwner,
-        isRetired: t.isRetired,
-      }))
-    );
-  }, [tokens, userTokens.length, user?.walletAddress]);
-
-  // Transferred tokens: Created by user but now owned by someone else
   const transferredTokens = tokens.filter(
     (token) =>
       !token.isRetired &&
@@ -162,22 +150,26 @@ const ProducerDashboard = ({ data }) => {
   const retiredTokens = tokens.filter((token) => token.isRetired);
 
   return (
-    <div>
+    <div className="producer-dashboard">
       {/* Stats Grid */}
       <div className="stats-grid">
         <div className="stat-card">
+          <div className="stat-icon">🌿</div>
           <h3>{userTokens.length}</h3>
           <p>Active Credits</p>
         </div>
         <div className="stat-card">
+          <div className="stat-icon">♻️</div>
           <h3>{retiredTokens.length}</h3>
           <p>Retired Credits</p>
         </div>
         <div className="stat-card">
+          <div className="stat-icon">🔄</div>
           <h3>{tokens.length}</h3>
           <p>Total Minted</p>
         </div>
         <div className="stat-card">
+          <div className="stat-icon">💰</div>
           <h3>
             {
               userTokens.filter((token) => token.creator !== token.currentOwner)
@@ -190,316 +182,191 @@ const ProducerDashboard = ({ data }) => {
 
       <div className="dashboard-grid">
         {/* Token Minting Section */}
-        <div className="card">
-          <h3>Generate Green Hydrogen Credits</h3>
-          {user?.factoryId && (
-            <div
-              style={{
-                marginTop: "10px",
-                padding: "10px",
-                backgroundColor: "#e3f2fd",
-                border: "1px solid #bbdefb",
-                borderRadius: "4px",
-                marginBottom: "15px",
-              }}
-            >
-              <strong>Factory:</strong> {user.factoryName}
-              <br />
-              <strong>Factory ID:</strong> {user.factoryId}
-            </div>
-          )}
-          <form onSubmit={handleMintTokens} style={{ marginTop: "15px" }}>
-            <div style={{ marginBottom: "15px" }}>
-              <label
-                htmlFor="quantity"
-                style={{ display: "block", marginBottom: "5px" }}
-              >
-                Quantity:
-              </label>
-              <input
-                type="number"
-                id="quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                min="1"
-                max="10"
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                }}
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn"
-              disabled={loading || !user?.factoryId}
-              style={{
-                backgroundColor: user?.factoryId ? "#4CAF50" : "#ccc",
-                color: "white",
-                padding: "10px 20px",
-                border: "none",
-                borderRadius: "4px",
-                cursor: loading || !user?.factoryId ? "not-allowed" : "pointer",
-                opacity: loading || !user?.factoryId ? 0.6 : 1,
-              }}
-            >
-              {loading
-                ? "Minting..."
-                : `Generate ${quantity} Credit${quantity > 1 ? "s" : ""}`}
-            </button>
-            {!user?.factoryId && (
-              <p
-                style={{
-                  marginTop: "10px",
-                  color: "#d32f2f",
-                  fontSize: "14px",
-                }}
-              >
-                Factory ID not assigned. Please contact admin.
-              </p>
-            )}
-          </form>
-
-          {mintingSuccess && (
-            <div
-              style={{
-                marginTop: "15px",
-                padding: "10px",
-                backgroundColor: "#d4edda",
-                border: "1px solid #c3e6cb",
-                borderRadius: "4px",
-                color: "#155724",
-              }}
-            >
-              {mintingSuccess}
-            </div>
-          )}
-
-          {error && (
-            <div
-              style={{
-                marginTop: "15px",
-                padding: "10px",
-                backgroundColor: "#f8d7da",
-                border: "1px solid #f5c6cb",
-                borderRadius: "4px",
-                color: "#721c24",
-              }}
-            >
-              Error: {error}
-            </div>
-          )}
-        </div>
-
-        {/* Token Transfer Section */}
-        <div className="card">
-          <h3>Transfer Credits</h3>
-
-          {/* Wallet Helper Component */}
-          <WalletHelper />
-
-          {/* Transfer Method Toggle */}
-          <div style={{ marginTop: "15px", marginBottom: "20px" }}>
-            <label>
-              <input
-                type="radio"
-                value="identifier"
-                checked={transferMethod === "identifier"}
-                onChange={(e) => setTransferMethod(e.target.value)}
-              />
-              Transfer by Username/Factory ID
-            </label>
-            <label style={{ marginLeft: "20px" }}>
-              <input
-                type="radio"
-                value="address"
-                checked={transferMethod === "address"}
-                onChange={(e) => setTransferMethod(e.target.value)}
-              />
-              Transfer by Wallet Address
-            </label>
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>Generate Green Hydrogen Credits</h3>
           </div>
-
-          {transferMethod === "identifier" ? (
-            <EnhancedTransferComponent
-              userTokens={userTokens}
-              onTransferSuccess={async () => {
-                setTransferSuccess(
-                  "Token transferred successfully! Refreshing data..."
-                );
-                // Add a small delay to ensure blockchain state is updated
-                setTimeout(async () => {
-                  await fetchTokens();
-                  setTransferSuccess("Token transferred successfully!");
-                  setTimeout(() => setTransferSuccess(null), 5000);
-                }, 1000);
-              }}
-              onTransferError={(error) => {
-                setTransferError(error);
-                setTimeout(() => setTransferError(null), 5000);
-              }}
-            />
-          ) : (
-            <form onSubmit={handleTransferToken} style={{ marginTop: "15px" }}>
-              <div style={{ marginBottom: "15px" }}>
-                <label
-                  htmlFor="tokenSelect"
-                  style={{ display: "block", marginBottom: "5px" }}
-                >
-                  Select Token to Transfer:
-                </label>
-                <select
-                  id="tokenSelect"
-                  value={transferData.tokenId}
-                  onChange={(e) =>
-                    setTransferData((prev) => ({
-                      ...prev,
-                      tokenId: e.target.value,
-                    }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                  }}
-                  required
-                >
-                  <option value="">Select a token...</option>
-                  {userTokens
-                    .filter((token) => token.creator === token.currentOwner)
-                    .map((token) => (
-                      <option key={token.tokenId} value={token.tokenId}>
-                        Token #{token.tokenId} - Factory: {token.factoryId}
-                      </option>
-                    ))}
-                </select>
+          <div className="card-content">
+            {user?.factoryId && (
+              <div className="factory-info">
+                <strong>Factory:</strong> {user.factoryName}
+                <br />
+                <strong>Factory ID:</strong> {user.factoryId}
               </div>
-              <div style={{ marginBottom: "15px" }}>
-                <label
-                  htmlFor="recipientAddress"
-                  style={{ display: "block", marginBottom: "5px" }}
-                >
-                  Recipient Wallet Address:
-                </label>
+            )}
+            <form onSubmit={handleMintTokens}>
+              <div className="form-group">
+                <label htmlFor="quantity">Quantity:</label>
                 <input
-                  type="text"
-                  id="recipientAddress"
-                  value={transferData.recipientAddress}
-                  onChange={(e) =>
-                    setTransferData((prev) => ({
-                      ...prev,
-                      recipientAddress: e.target.value,
-                    }))
-                  }
-                  placeholder="0x..."
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                  }}
-                  required
+                  type="number"
+                  id="quantity"
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  min="1"
+                  max="10"
                 />
               </div>
               <button
                 type="submit"
-                className="btn"
-                disabled={
-                  loading ||
-                  userTokens.filter(
-                    (token) => token.creator === token.currentOwner
-                  ).length === 0
-                }
-                style={{
-                  backgroundColor:
-                    userTokens.filter(
-                      (token) => token.creator === token.currentOwner
-                    ).length > 0
-                      ? "#2196F3"
-                      : "#ccc",
-                  color: "white",
-                  padding: "10px 20px",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor:
-                    loading ||
-                    userTokens.filter(
-                      (token) => token.creator === token.currentOwner
-                    ).length === 0
-                      ? "not-allowed"
-                      : "pointer",
-                  opacity:
-                    loading ||
-                    userTokens.filter(
-                      (token) => token.creator === token.currentOwner
-                    ).length === 0
-                      ? 0.6
-                      : 1,
-                }}
+                className="btn-primary"
+                disabled={loading || !user?.factoryId}
               >
-                {loading ? "Transferring..." : "Transfer Token"}
+                {loading
+                  ? "Minting..."
+                  : `Generate ${quantity} Credit${quantity > 1 ? "s" : ""}`}
               </button>
-              {userTokens.filter(
-                (token) => token.creator === token.currentOwner
-              ).length === 0 && (
-                <p
-                  style={{
-                    marginTop: "10px",
-                    color: "#d32f2f",
-                    fontSize: "14px",
-                  }}
-                >
-                  No transferable tokens available. You can only transfer tokens
-                  you currently own.
+              {!user?.factoryId && (
+                <p className="error-message">
+                  Factory ID not assigned. Please contact admin.
                 </p>
               )}
             </form>
-          )}
 
-          {transferSuccess && (
-            <div
-              style={{
-                marginTop: "15px",
-                padding: "10px",
-                backgroundColor: "#d4edda",
-                border: "1px solid #c3e6cb",
-                borderRadius: "4px",
-                color: "#155724",
-              }}
-            >
-              {transferSuccess}
-            </div>
-          )}
+            {mintingSuccess && (
+              <div className="success-message">
+                {mintingSuccess}
+              </div>
+            )}
 
-          {transferError && (
-            <div
-              style={{
-                marginTop: "15px",
-                padding: "10px",
-                backgroundColor: "#f8d7da",
-                border: "1px solid #f5c6cb",
-                borderRadius: "4px",
-                color: "#721c24",
-              }}
-            >
-              Error: {transferError}
+            {error && (
+              <div className="error-message">
+                Error: {error}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Token Transfer Section */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>Transfer Credits</h3>
+          </div>
+          <div className="card-content">
+            <WalletHelper />
+
+            {/* Transfer Method Toggle */}
+            <div className="transfer-toggle">
+              <label className="toggle-option">
+                <input
+                  type="radio"
+                  value="identifier"
+                  checked={transferMethod === "identifier"}
+                  onChange={(e) => setTransferMethod(e.target.value)}
+                />
+                <span>Transfer by Username/Factory ID</span>
+              </label>
+              <label className="toggle-option">
+                <input
+                  type="radio"
+                  value="address"
+                  checked={transferMethod === "address"}
+                  onChange={(e) => setTransferMethod(e.target.value)}
+                />
+                <span>Transfer by Wallet Address</span>
+              </label>
             </div>
-          )}
+
+            {transferMethod === "identifier" ? (
+              <EnhancedTransferComponent
+                userTokens={userTokens}
+                onTransferSuccess={async () => {
+                  setTransferSuccess(
+                    "Token transferred successfully! Refreshing data..."
+                  );
+                  setTimeout(async () => {
+                    await fetchTokens();
+                    setTransferSuccess("Token transferred successfully!");
+                    setTimeout(() => setTransferSuccess(null), 5000);
+                  }, 1000);
+                }}
+                onTransferError={(error) => {
+                  setTransferError(error);
+                  setTimeout(() => setTransferError(null), 5000);
+                }}
+              />
+            ) : (
+              <form onSubmit={handleTransferToken}>
+                <div className="form-group">
+                  <label htmlFor="tokenSelect">Select Token to Transfer:</label>
+                  <select
+                    id="tokenSelect"
+                    value={transferData.tokenId}
+                    onChange={(e) =>
+                      setTransferData((prev) => ({
+                        ...prev,
+                        tokenId: e.target.value,
+                      }))
+                    }
+                    required
+                  >
+                    <option value="">Select a token...</option>
+                    {userTokens
+                      .filter((token) => token.creator === token.currentOwner)
+                      .map((token) => (
+                        <option key={token.tokenId} value={token.tokenId}>
+                          Token #{token.tokenId} - Factory: {token.factoryId}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="recipientAddress">
+                    Recipient Wallet Address:
+                  </label>
+                  <input
+                    type="text"
+                    id="recipientAddress"
+                    value={transferData.recipientAddress}
+                    onChange={(e) =>
+                      setTransferData((prev) => ({
+                        ...prev,
+                        recipientAddress: e.target.value,
+                      }))
+                    }
+                    placeholder="0x..."
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={
+                    loading ||
+                    userTokens.filter(
+                      (token) => token.creator === token.currentOwner
+                    ).length === 0
+                  }
+                >
+                  {loading ? "Transferring..." : "Transfer Token"}
+                </button>
+                {userTokens.filter(
+                  (token) => token.creator === token.currentOwner
+                ).length === 0 && (
+                  <p className="error-message">
+                    No transferable tokens available. You can only transfer tokens
+                    you currently own.
+                  </p>
+                )}
+              </form>
+            )}
+
+            {transferSuccess && (
+              <div className="success-message">
+                {transferSuccess}
+              </div>
+            )}
+
+            {transferError && (
+              <div className="error-message">
+                Error: {transferError}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* My Tokens */}
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "15px",
-            }}
-          >
+        <div className="dashboard-card">
+          <div className="card-header with-action">
             <h3>My Active Credits ({userTokens.length})</h3>
             <button
               onClick={async () => {
@@ -508,45 +375,20 @@ const ProducerDashboard = ({ data }) => {
                 setTransferSuccess("Tokens refreshed!");
                 setTimeout(() => setTransferSuccess(null), 2000);
               }}
-              style={{
-                backgroundColor: "#28a745",
-                color: "white",
-                border: "none",
-                padding: "8px 12px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-              }}
+              className="btn-refresh"
             >
               🔄 Refresh
             </button>
           </div>
-          <div
-            style={{ marginTop: "15px", maxHeight: "400px", overflowY: "auto" }}
-          >
+          <div className="card-content scrollable">
             {userTokens.length === 0 ? (
-              <p>
+              <p className="empty-state">
                 No active tokens found. Generate some credits to get started!
               </p>
             ) : (
               userTokens.map((token) => (
-                <div
-                  key={token.tokenId}
-                  style={{
-                    padding: "12px",
-                    border: "1px solid #eee",
-                    borderRadius: "4px",
-                    marginBottom: "10px",
-                    backgroundColor: "#f9f9f9",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
+                <div key={token.tokenId} className="token-item">
+                  <div className="token-info">
                     <div>
                       <strong>Token #{token.tokenId}</strong>
                       <br />
@@ -557,14 +399,7 @@ const ProducerDashboard = ({ data }) => {
                         {new Date(token.creationTimestamp).toLocaleDateString()}
                       </span>
                       <br />
-                      <span
-                        style={{
-                          color:
-                            token.creator === token.currentOwner
-                              ? "green"
-                              : "orange",
-                        }}
-                      >
+                      <span className={`status ${token.creator === token.currentOwner ? 'available' : 'sold'}`}>
                         Status:{" "}
                         {token.creator === token.currentOwner
                           ? "Available"
@@ -581,17 +416,10 @@ const ProducerDashboard = ({ data }) => {
                     </div>
                     <button
                       onClick={() => handleRetireToken(token.tokenId)}
-                      style={{
-                        backgroundColor: "#dc3545",
-                        color: "white",
-                        border: "none",
-                        padding: "5px 10px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                      }}
+                      className="btn-retire"
+                      disabled={retiringTokenId === token.tokenId}
                     >
-                      Retire
+                      {retiringTokenId === token.tokenId ? "Retiring..." : "Retire"}
                     </button>
                   </div>
                 </div>
@@ -602,28 +430,18 @@ const ProducerDashboard = ({ data }) => {
 
         {/* Production Facilities */}
         {producerData && (
-          <div className="card">
-            <h3>Production Facilities</h3>
-            <div style={{ marginTop: "15px" }}>
+          <div className="dashboard-card">
+            <div className="card-header">
+              <h3>Production Facilities</h3>
+            </div>
+            <div className="card-content">
               {producerData.productionFacilities.map((facility) => (
-                <div
-                  key={facility.id}
-                  style={{
-                    padding: "10px",
-                    border: "1px solid #eee",
-                    borderRadius: "4px",
-                    marginBottom: "10px",
-                  }}
-                >
+                <div key={facility.id} className="facility-item">
                   <strong>{facility.name}</strong>
                   <br />
                   <span>Capacity: {facility.capacity}</span>
                   <br />
-                  <span
-                    style={{
-                      color: facility.status === "Active" ? "green" : "orange",
-                    }}
-                  >
+                  <span className={`status ${facility.status === "Active" ? 'active' : 'inactive'}`}>
                     Status: {facility.status}
                   </span>
                 </div>
@@ -634,27 +452,13 @@ const ProducerDashboard = ({ data }) => {
 
         {/* Retired Tokens */}
         {retiredTokens.length > 0 && (
-          <div className="card">
-            <h3>Retired Credits ({retiredTokens.length})</h3>
-            <div
-              style={{
-                marginTop: "15px",
-                maxHeight: "300px",
-                overflowY: "auto",
-              }}
-            >
+          <div className="dashboard-card">
+            <div className="card-header">
+              <h3>Retired Credits ({retiredTokens.length})</h3>
+            </div>
+            <div className="card-content scrollable">
               {retiredTokens.map((token) => (
-                <div
-                  key={token.tokenId}
-                  style={{
-                    padding: "10px",
-                    border: "1px solid #eee",
-                    borderRadius: "4px",
-                    marginBottom: "10px",
-                    backgroundColor: "#f5f5f5",
-                    opacity: 0.7,
-                  }}
-                >
+                <div key={token.tokenId} className="retired-token-item">
                   <strong>Token #{token.tokenId}</strong>
                   <br />
                   <span>Factory: {token.factoryId}</span>
@@ -669,6 +473,309 @@ const ProducerDashboard = ({ data }) => {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        .producer-dashboard {
+          padding: 20px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(240, 255, 240, 0.8) 100%);
+          backdrop-filter: blur(10px);
+          min-height: 100vh;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+        
+        .stat-card {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(5px);
+          border-radius: 16px;
+          padding: 20px;
+          text-align: center;
+          box-shadow: 0 4px 15px rgba(0, 100, 0, 0.1);
+          border: 1px solid rgba(46, 125, 50, 0.2);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0, 100, 0, 0.15);
+        }
+        
+        .stat-icon {
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        
+        .stat-card h3 {
+          margin: 10px 0;
+          font-size: 28px;
+          color: #2e7d32;
+          font-weight: 700;
+        }
+        
+        .stat-card p {
+          margin: 0;
+          color: #555;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        
+        .dashboard-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+          gap: 25px;
+        }
+        
+        .dashboard-card {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(5px);
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 4px 15px rgba(0, 100, 0, 0.1);
+          border: 1px solid rgba(46, 125, 50, 0.2);
+          transition: transform 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+          transform: translateY(-3px);
+        }
+        
+        .card-header {
+          padding: 20px;
+          background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+          color: white;
+        }
+        
+        .card-header.with-action {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .card-header h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+        
+        .card-content {
+          padding: 20px;
+        }
+        
+        .factory-info {
+          margin: 10px 0 20px;
+          padding: 12px;
+          background: rgba(76, 175, 80, 0.1);
+          border: 1px solid rgba(76, 175, 80, 0.3);
+          border-radius: 8px;
+          font-size: 14px;
+          color: #2e7d32;
+        }
+        
+        .form-group {
+          margin-bottom: 20px;
+        }
+        
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 500;
+          color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+          width: 100%;
+          padding: 12px 15px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.8);
+          font-size: 14px;
+          transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+          outline: none;
+          border-color: #4caf50;
+          box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        
+        .btn-primary {
+          background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          width: 100%;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+          box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+          transform: translateY(-2px);
+        }
+        
+        .btn-primary:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+          transform: none;
+        }
+        
+        .btn-refresh {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          padding: 8px 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.3s ease;
+        }
+        
+        .btn-refresh:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-retire {
+          background: #f44336;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.3s ease;
+        }
+        
+        .btn-retire:hover:not(:disabled) {
+          background: #d32f2f;
+          transform: translateY(-2px);
+        }
+        
+        .btn-retire:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+          transform: none;
+        }
+        
+        .transfer-toggle {
+          display: flex;
+          gap: 20px;
+          margin: 20px 0;
+        }
+        
+        .toggle-option {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+        }
+        
+        .toggle-option input {
+          margin-right: 8px;
+        }
+        
+        .scrollable {
+          max-height: 400px;
+          overflow-y: auto;
+        }
+        
+        .token-item,
+        .facility-item,
+        .retired-token-item {
+          padding: 15px;
+          border: 1px solid #eee;
+          border-radius: 8px;
+          margin-bottom: 12px;
+          background: rgba(255, 255, 255, 0.5);
+          transition: all 0.3s ease;
+        }
+        
+        .token-item:hover,
+        .facility-item:hover {
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+          transform: translateY(-2px);
+        }
+        
+        .retired-token-item {
+          opacity: 0.7;
+          background: #f5f5f5;
+        }
+        
+        .token-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+        
+        .status.available {
+          color: #2e7d32;
+          font-weight: 500;
+        }
+        
+        .status.sold {
+          color: #ff9800;
+          font-weight: 500;
+        }
+        
+        .status.active {
+          color: #2e7d32;
+          font-weight: 500;
+        }
+        
+        .status.inactive {
+          color: #ff9800;
+          font-weight: 500;
+        }
+        
+        .success-message {
+          margin-top: 15px;
+          padding: 12px;
+          background: rgba(76, 175, 80, 0.1);
+          border: 1px solid rgba(76, 175, 80, 0.3);
+          border-radius: 8px;
+          color: #2e7d32;
+        }
+        
+        .error-message {
+          margin-top: 15px;
+          padding: 12px;
+          background: rgba(244, 67, 54, 0.1);
+          border: 1px solid rgba(244, 67, 54, 0.3);
+          border-radius: 8px;
+          color: #d32f2f;
+        }
+        
+        .empty-state {
+          text-align: center;
+          color: #777;
+          font-style: italic;
+          padding: 30px 0;
+        }
+        
+        @media (max-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          
+          .dashboard-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .transfer-toggle {
+            flex-direction: column;
+            gap: 10px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
