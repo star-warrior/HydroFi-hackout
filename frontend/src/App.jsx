@@ -15,6 +15,7 @@ import WorldMap from "./components/WorldMap";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import PrivateRoute from "./components/auth/PrivateRoute";
+import "./index.css"; // Make sure to import your CSS file
 
 function App() {
   return (
@@ -30,12 +31,14 @@ function App() {
 
 const AppContent = () => {
   const location = useLocation();
-  const isLanding = location.pathname === "/";
+  
+  // Check if we're on a page that should have the full navbar
+  const isFullNavbarPage = ["/", "/login", "/register"].includes(location.pathname);
 
   return (
-    <div className="App bg-gray-100 min-h-screen flex flex-col">
-      <Navbar showFull={isLanding} />
-      <main className="flex-1">
+    <div className="App min-h-screen flex flex-col">
+      <Navbar showFull={isFullNavbarPage} />
+      <main className="flex-1 pt-16"> {/* Added padding to account for fixed navbar */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import bg from "../../assets/forest.png"; 
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -63,7 +64,6 @@ const Register = () => {
     <div
       className="min-h-screen flex items-center justify-center p-6 bg-gray-900 text-gray-300"
       style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=2070&auto=format&fit=crop')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
