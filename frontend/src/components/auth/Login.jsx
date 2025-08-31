@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import GlassyLayout from "../GlassyLayout";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,6 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // These would be imported from 'react-router-dom' and your AuthContext in a real app
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -38,12 +38,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-300 flex items-center justify-center p-7" style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=2070&auto=format&fit=crop')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-    }}>
-      <div className="w-full max-w-md p-8 space-y-6 bg-black bg-opacity-50 backdrop-blur-sm rounded-2xl shadow-2xl">
+    <GlassyLayout showForestBg={true}>
+      <div className="w-full max-w-md p-8 space-y-6 bg-opacity-50 backdrop-blur-sm rounded-2xl shadow-2xl">
         <div className="text-center">
             <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
             <p className="text-gray-200">Continue your journey with us</p>
@@ -66,7 +62,7 @@ const Login = () => {
               onChange={handleChange}
               placeholder="you@example.com"
               required
-              className="w-full bg-gray-800 bg-opacity-70 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              className="w-full bg-opacity-70 border rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
             />
           </div>
 
@@ -80,7 +76,7 @@ const Login = () => {
               onChange={handleChange}
               placeholder="Enter your password"
               required
-              className="w-full bg-gray-800 bg-opacity-70 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              className="w-full bg-opacity-70 border  rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
             />
           </div>
 
@@ -101,7 +97,7 @@ const Login = () => {
           </Link>
         </p>
       </div>
-    </div>
+    </GlassyLayout>
   );
 };
 
