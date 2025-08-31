@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 import { useBlockchain } from "../../contexts/BlockchainContext";
 import WalletHelper from "../WalletHelper";
