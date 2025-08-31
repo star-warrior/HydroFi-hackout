@@ -10,9 +10,9 @@ async function listUsers() {
 
         // Get all users
         const users = await User.find({}).select('username email role factoryName factoryId walletAddress');
-        
+
         console.log('\n=== ALL USERS IN DATABASE ===\n');
-        
+
         if (users.length === 0) {
             console.log('No users found in database');
         } else {
@@ -33,7 +33,7 @@ async function listUsers() {
         // Filter Industry Buyers specifically
         const buyers = users.filter(user => user.role === 'Industry Buyer');
         console.log('\n=== INDUSTRY BUYERS ===\n');
-        
+
         if (buyers.length === 0) {
             console.log('❌ No Industry Buyers found in database');
             console.log('\n💡 To create an Industry Buyer:');

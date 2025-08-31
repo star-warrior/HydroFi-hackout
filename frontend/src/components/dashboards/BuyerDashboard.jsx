@@ -61,8 +61,12 @@ const BuyerDashboard = ({ data }) => {
     }
   };
 
-  const ownedTokens = (tokens || []).filter((token) => token && !token.isRetired);
-  const retiredTokens = (tokens || []).filter((token) => token && token.isRetired);
+  const ownedTokens = (tokens || []).filter(
+    (token) => token && !token.isRetired
+  );
+  const retiredTokens = (tokens || []).filter(
+    (token) => token && token.isRetired
+  );
 
   return (
     <div>
@@ -117,18 +121,31 @@ const BuyerDashboard = ({ data }) => {
                     <div>
                       <strong>Token #{token.tokenId}</strong>
                       <br />
-                      <span>Factory: {token.factoryId || 'Unknown'}</span>
+                      <span>Factory: {token.factoryId || "Unknown"}</span>
                       <br />
                       <span>
                         Created:{" "}
-                        {token.creationTimestamp ? new Date(token.creationTimestamp).toLocaleDateString() : 'Unknown'}
+                        {token.creationTimestamp
+                          ? new Date(
+                              token.creationTimestamp
+                            ).toLocaleDateString()
+                          : "Unknown"}
                       </span>
                       <br />
-                      <span>Creator: {token.creator ? token.creator.slice(0, 10) + '...' : 'Unknown'}</span>
+                      <span>
+                        Creator:{" "}
+                        {token.creator
+                          ? token.creator.slice(0, 10) + "..."
+                          : "Unknown"}
+                      </span>
                       <br />
                       <span>
                         Purchased:{" "}
-                        {token.lastTransferTimestamp ? new Date(token.lastTransferTimestamp).toLocaleDateString() : 'Unknown'}
+                        {token.lastTransferTimestamp
+                          ? new Date(
+                              token.lastTransferTimestamp
+                            ).toLocaleDateString()
+                          : "Unknown"}
                       </span>
                     </div>
                     <div
