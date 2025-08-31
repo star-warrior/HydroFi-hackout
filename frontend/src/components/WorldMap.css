@@ -131,19 +131,19 @@
 }
 
 .legend-marker.green {
-  background-color: #28a745;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
 }
 
 .legend-marker.orange {
-  background-color: #fd7e14;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
 }
 
 .legend-marker.red {
-  background-color: #dc3545;
+  background: linear-gradient(135deg, #1f2937, #374151);
 }
 
 .legend-marker.blue {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #6b7280, #9ca3af);
 }
 
 /* Stats Section */
@@ -444,25 +444,34 @@
 
 /* Cluster Styles */
 .marker-cluster-small {
-  background-color: rgba(44, 90, 160, 0.6);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(168, 85, 247, 0.8));
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
 
 .marker-cluster-small div {
-  background-color: rgba(44, 90, 160, 0.8);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(168, 85, 247, 0.9));
+  color: white;
+  font-weight: 700;
 }
 
 .marker-cluster-medium {
-  background-color: rgba(253, 126, 20, 0.6);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.8), rgba(245, 158, 11, 0.8));
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
 }
 
 .marker-cluster-medium div {
-  background-color: rgba(253, 126, 20, 0.8);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(245, 158, 11, 0.9));
+  color: white;
+  font-weight: 700;
 }
 
 .marker-cluster-large {
-  background-color: rgba(220, 53, 69, 0.6);
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.8), rgba(55, 65, 81, 0.8));
+  box-shadow: 0 4px 15px rgba(31, 41, 55, 0.3);
 }
 
 .marker-cluster-large div {
-  background-color: rgba(220, 53, 69, 0.8);
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.9), rgba(55, 65, 81, 0.9));
+  color: white;
+  font-weight: 700;
 }

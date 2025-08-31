@@ -840,12 +840,12 @@ export const filterProductionHouses = (data, filters) => {
 export const getMarkerColor = (projectStage) => {
   switch (projectStage) {
     case "Operation":
-      return "green";
+      return "violet";
     case "Construction":
-      return "orange";
+      return "yellow";
     case "Planning":
-      return "red";
+      return "black";
     default:
-      return "blue";
+      return "grey";
   }
 };
