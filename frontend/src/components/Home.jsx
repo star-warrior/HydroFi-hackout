@@ -1,116 +1,71 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import bg from "../assets/forest.png"; // ✅ replace with your forest bg image
+import GlassyLayout from "./GlassyLayout";
+
+const ArrowRightIcon = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
+    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+  </svg>
+);
 
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
 
   return (
-    <div className="container">
-      <div className="card" style={{ textAlign: "center", marginTop: "50px" }}>
-        <h1 style={{ marginBottom: "20px", color: "#007bff" }}>
-          Welcome to HydroFi
-        </h1>
-        <h2 style={{ marginBottom: "30px", fontWeight: "normal" }}>
-          Blockchain-Based Green Hydrogen Credit System
-        </h2>
+    <GlassyLayout showForestBg={true}>
+      {/* Content */}
+      <div className="relative z-10 max-w-3xl mx-auto px-6">
+        {/* Social Proof */}
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <img
+            src="https://randomuser.me/api/portraits/men/32.jpg"
+            alt="user"
+            className="w-6 h-6 rounded-full border-2 border-white"
+          />
+          <img
+            src="https://randomuser.me/api/portraits/women/45.jpg"
+            alt="user"
+            className="w-6 h-6 rounded-full border-2 border-white -ml-2"
+          />
+          <span className="text-sm text-gray-600">10,000+ people found their calm</span>
+        </div>
 
-        <p style={{ fontSize: "18px", marginBottom: "30px", color: "#666" }}>
-          A comprehensive platform for managing green hydrogen production,
-          certification, and carbon credit trading in a sustainable ecosystem.
+        {/* Hero Heading */}
+        <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-4">
+          Discover a space where{" "}
+          <span className="text-gray-900">calm</span>{" "}
+          <span className="italic text-emerald-700">meets clarity</span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-lg text-gray-600 mb-8">
+          Designed with sustainability at its core, HydroFi helps you reconnect
+          with green energy and create mindful impact in your everyday life.
         </p>
 
-        {isAuthenticated ? (
-          <div>
-            <div
-              className="alert alert-success"
-              style={{ marginBottom: "30px" }}
-            >
-              Welcome back, {user?.username}! You are logged in as a{" "}
-              {user?.role}.
-            </div>
+        {/* Buttons */}
+         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link
-              to="/dashboard"
-              className="btn"
-              style={{ fontSize: "18px", padding: "15px 30px" }}
+              to={isAuthenticated ? "/dashboard" : "/register"}
+              className="group flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all duration-300 ease-out transform hover:scale-105"
             >
-              Go to Dashboard
+              <span>{isAuthenticated ? "Go to Dashboard" : "Start your journey"}</span>
+              <ArrowRightIcon className="w-15 h-10 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
-          </div>
-        ) : (
-          <div>
-            <h3 style={{ marginBottom: "20px" }}>Get Started</h3>
-            <p style={{ marginBottom: "30px" }}>
-              Join our platform to participate in the green hydrogen ecosystem
-            </p>
-            <div
-              style={{ display: "flex", gap: "20px", justifyContent: "center" }}
-            >
-              <Link
-                to="/register"
-                className="btn"
-                style={{ fontSize: "18px", padding: "15px 30px" }}
-              >
-                Register Now
-              </Link>
+            
+            {!isAuthenticated && (
               <Link
                 to="/login"
-                className="btn btn-secondary"
-                style={{ fontSize: "18px", padding: "15px 30px" }}
+                className="w-full sm:w-auto px-7 py-3.5 bg-white/80 text-gray-800 font-semibold backdrop-blur-sm border border-white/30 rounded-full hover:bg-white transition-all duration-300 ease-out transform hover:scale-105"
               >
-                Login
+                Learn more
               </Link>
-            </div>
+            )}
           </div>
-        )}
       </div>
-
-      {/* Features Section */}
-      <div className="dashboard-grid" style={{ marginTop: "50px" }}>
-        <div className="card">
-          <h3>🏭 Green Hydrogen Producers</h3>
-          <p>
-            Manage production facilities, track hydrogen generation, and earn
-            carbon credits for sustainable practices.
-          </p>
-        </div>
-
-        <div className="card">
-          <h3>🏛️ Regulatory Authorities</h3>
-          <p>
-            Oversee compliance, approve certifications, and ensure industry
-            standards are maintained.
-          </p>
-        </div>
-
-        <div className="card">
-          <h3>🏢 Industry Buyers</h3>
-          <p>
-            Purchase carbon credits, manage portfolios, and meet sustainability
-            targets through verified credits.
-          </p>
-        </div>
-
-        <div className="card">
-          <h3>✅ Certification Bodies</h3>
-          <p>
-            Conduct inspections, issue certifications, and validate green
-            hydrogen production standards.
-          </p>
-        </div>
-      </div>
-
-      <div className="card" style={{ marginTop: "50px", textAlign: "center" }}>
-        <h3>About the Platform</h3>
-        <p>
-          HydroFi leverages blockchain technology to create a transparent,
-          secure, and efficient ecosystem for green hydrogen credit management.
-          Our platform connects producers, regulators, buyers, and certification
-          bodies in a unified marketplace that promotes sustainable energy
-          practices.
-        </p>
-      </div>
-    </div>
+        </GlassyLayout>
   );
 };
 
