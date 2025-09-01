@@ -158,6 +158,7 @@ export const BlockchainProvider = ({ children }) => {
     try {
       const response = await axios.get(
         `${API_BASE_URL}/blockchain/stats`,
+        
         getAuthHeaders()
       );
 
