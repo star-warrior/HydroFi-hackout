@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import bg from "../assets/forest.png"; // ✅ replace with your forest bg image
 import GlassyLayout from "./GlassyLayout";
+import { Globe } from "lucide-react"; 
+import { WrapButton } from "./ui/WrapButton";
 
 const ArrowRightIcon = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
@@ -47,14 +49,17 @@ const Home = () => {
         </p>
 
         {/* Buttons */}
-         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Link
-              to={isAuthenticated ? "/dashboard" : "/register"}
-              className="group flex items-center justify-center gap-1 w-full sm:w-auto px-5 py-3.5 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all duration-300 ease-out transform hover:scale-105"
-            >
-              <span>{isAuthenticated ? "Go to Dashboard" : "Start your journey"}</span>
-              <ArrowRightIcon className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+          {/* ✅ Replaced with WrapButton */}
+          <WrapButton
+            className="mt-2"
+            href={isAuthenticated ? "/dashboard" : "/register"}
+          >
+            <Globe className="animate-spin" />
+            {isAuthenticated ? "Go to Dashboard" : "Start your journey"}
+          </WrapButton>
+
             
             {!isAuthenticated && (
               <Link

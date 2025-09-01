@@ -7,7 +7,8 @@ export const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const isFixedNavbarPage = ["/", "/home", "/login", "/register"].includes(location.pathname);
+
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
@@ -66,7 +67,11 @@ export const Navbar = () => {
       </style>
       
       <AnimatePresence>
+        
+
+
         <motion.nav
+        
           initial={{ 
             height: shouldShowSmallNavbar ? 60 : 80,
             backgroundColor: shouldShowSmallNavbar ? "#1A2421" : "transparent",
@@ -86,11 +91,13 @@ export const Navbar = () => {
             padding: shouldShowSmallNavbar ? "0 1rem" : "0 2rem"
           }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
-          className={`fixed left-1/2 -translate-x-1/2 z-50 font-body transition-all duration-500 backdrop-blur
-            ${showNav ? "translate-y-0" : "-translate-y-24"}
-            ${isMounted ? "opacity-100" : "opacity-0 -translate-y-8"}
-            ${shouldShowSmallNavbar ? "shadow-none border-none" : "shadow border border-white/30"}
-          `}
+       className={`${
+    isFixedNavbarPage ? "fixed" : "relative"
+  } left-1/2 -translate-x-1/2 z-50 font-body transition-all duration-500 backdrop-blur
+    ${showNav ? "translate-y-0" : "-translate-y-24"}
+    ${isMounted ? "opacity-100" : "opacity-0 -translate-y-8"}
+    ${shouldShowSmallNavbar ? "shadow-none border-none" : "shadow border border-white/30"}
+  `}
         >
           <div className={`flex items-center justify-between h-full ${shouldShowSmallNavbar ? "px-4" : "px-5 py-3"}`}>
             {/* Logo */}
