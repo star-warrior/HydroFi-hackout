@@ -10,6 +10,7 @@ const ArrowRightIcon = ({ className }) => (
   </svg>
 );
 
+// A simple layout component to mimic GlassyLayout
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
 
@@ -33,26 +34,26 @@ const Home = () => {
         </div>
 
         {/* Hero Heading */}
-        <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-4">
-          Discover a space where{" "}
-          <span className="text-gray-900">calm</span>{" "}
-          <span className="italic text-emerald-700">meets clarity</span>
+        <h1 className="text-3xl sm:text-6xl font-bold text-gray-900 mb-4">
+     Decentralizing the <thead></thead> {" "}
+  <span className="text-gray-900"> </span>{" "}future 
+  <span className="text-10xl italic text-emerald-700"> of green hydrogen</span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-lg text-gray-600 mb-8">
-          Designed with sustainability at its core, HydroFi helps you reconnect
-          with green energy and create mindful impact in your everyday life.
+         Designed with sustainability at its core, HydroFi helps you reconnect
+  with green energy and create mindful impact in your everyday life.
         </p>
 
         {/* Buttons */}
          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link
               to={isAuthenticated ? "/dashboard" : "/register"}
-              className="group flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all duration-300 ease-out transform hover:scale-105"
+              className="group flex items-center justify-center gap-1 w-full sm:w-auto px-5 py-3.5 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition-all duration-300 ease-out transform hover:scale-105"
             >
               <span>{isAuthenticated ? "Go to Dashboard" : "Start your journey"}</span>
-              <ArrowRightIcon className="w-15 h-10 transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRightIcon className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
             
             {!isAuthenticated && (
@@ -64,7 +65,9 @@ const Home = () => {
               </Link>
             )}
           </div>
+
       </div>
+
         </GlassyLayout>
   );
 };
