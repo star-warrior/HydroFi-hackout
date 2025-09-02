@@ -4,19 +4,6 @@ A **full-stack MERN** application for managing green hydrogen production, certif
 
 ![Node.js](https://img.shields.io/badge/Node.js-16%2B-brightgreen) ![MongoDB](https://img.shields.io/badge/MongoDB-A32CC4-purple) ![React](https://img.shields.io/badge/React-18-blue) ![Ethereum](https://img.shields.io/badge/Ethereum-ERC--1155-blueviolet)![JavaScript](https://img.shields.io/badge/javascript-blue?logo=javascript)
 
----
-
-## ⚠️ Important Notice: Project Integrity
-
-We have identified a significant issue of project cloning and potential code plagiarism on GitHub.
-near 36 unique are unauthorized by our team, near-identical copies of our original project ([Your GitHub Repo Link]).
-We have already begun reporting these clones to GitHub for violation of their Terms of Service and our project's license.
-We kindly request that the judges consider the timestamps and commit history of our repository as the definitive source of original work.
-Thank you for your understanding and for judging based on authentic innovation.
-
-![gitClones](./assets/clone_issue.jpg)
-
----
 
 ## 👀 Take a look
 
