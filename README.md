@@ -6,8 +6,8 @@ A **full-stack MERN** application for managing green hydrogen production, certif
 
 
 ## 👀 Take a look
+![Screen Shot 2025-09-02 at 12 52 02 PM](https://github.com/user-attachments/assets/36c78705-2626-430d-a3e4-487ba0b8eee2)
 
-![homepage](./assets/homepaeg.jpg)
 ![Heropage](./assets/hero.jpg)
 
 ---
