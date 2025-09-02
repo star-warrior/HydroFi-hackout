@@ -9,7 +9,9 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ["hydrofi.netlify.app", "http://localhost:3000"]
+}));
 app.use(express.json());
 
 // MongoDB connection
