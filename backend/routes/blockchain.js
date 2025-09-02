@@ -17,10 +17,15 @@ const requireProducer = (req, res, next) => {
 
 // Middleware to check if user is admin (regulatory authority)
 const requireAdmin = (req, res, next) => {
-    if (req.user.role !== 'Regulatory Authority') {
-        return res.status(403).json({ message: 'Access denied. Regulatory authority role required.' });
-    }
-    next();
+  const allowedRoles = ['Regulatory Authority', 'Certification Body'];
+
+  if (!allowedRoles.includes(req.user.role)) {
+    return res
+      .status(403)
+      .json({ message: 'Access denied. Regulatory authority or certification body role required.' });
+  }
+
+  next();
 };
 
 // POST /api/blockchain/mint - Mint new tokens (Producer only)
@@ -421,7 +426,7 @@ router.get('/stats', auth, requireAdmin, async (req, res) => {
                 stats
             });
         } else {
-            res.status(500).json({ message: 'Failed to fetch statistics' });
+            res.status(500).json({ message: 'Failed to fetch sfsctatistics' });
         }
     } catch (error) {
         console.error('Get stats error:', error);

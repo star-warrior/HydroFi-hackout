@@ -7,14 +7,19 @@ export const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const isFixedNavbarPage = ["/", "/home", "/login", "/register"].includes(
+    location.pathname
+  );
+
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
 
   // Check if we're on a page that should have the small navbar
-  const isSmallNavbarPage = !["/", "/home", "/login", "/register"].includes(location.pathname);
-  
+  const isSmallNavbarPage = !["/", "/home", "/login", "/register"].includes(
+    location.pathname
+  );
+
   // Hide/show navbar on scroll
   useEffect(() => {
     const controlNavbar = () => {
@@ -25,14 +30,14 @@ export const Navbar = () => {
       }
       setLastScrollY(window.scrollY);
     };
-    
+
     // Only apply scroll behavior on home page
     if (location.pathname === "/" || location.pathname === "/home") {
       window.addEventListener("scroll", controlNavbar);
     } else {
       setShowNav(true); // Always show on other pages
     }
-    
+
     return () => window.removeEventListener("scroll", controlNavbar);
   }, [lastScrollY, location.pathname]);
 
@@ -64,44 +69,56 @@ export const Navbar = () => {
           .font-body { font-family: 'Inter', sans-serif; }
         `}
       </style>
-      
+
       <AnimatePresence>
         <motion.nav
-          initial={{ 
+          initial={{
             height: shouldShowSmallNavbar ? 60 : 80,
             backgroundColor: shouldShowSmallNavbar ? "#1A2421" : "transparent",
             top: shouldShowSmallNavbar ? 0 : 8,
             width: shouldShowSmallNavbar ? "100vw" : "95vw",
             maxWidth: shouldShowSmallNavbar ? "100%" : "1100px",
             borderRadius: shouldShowSmallNavbar ? 0 : "9999px",
-            padding: shouldShowSmallNavbar ? "0 1rem" : "0 2rem"
+            padding: shouldShowSmallNavbar ? "0 1rem" : "0 2rem",
           }}
-          animate={{ 
+          animate={{
             height: shouldShowSmallNavbar ? 60 : 80,
-            backgroundColor: shouldShowSmallNavbar ? "#1A2421" : "rgba(255, 255, 255, 0.8)",
+            backgroundColor: shouldShowSmallNavbar
+              ? "#1A2421"
+              : "rgba(255, 255, 255, 0.8)",
             top: shouldShowSmallNavbar ? 0 : 8,
             width: shouldShowSmallNavbar ? "100vw" : "95vw",
             maxWidth: shouldShowSmallNavbar ? "100%" : "1100px",
             borderRadius: shouldShowSmallNavbar ? 0 : "9999px",
-            padding: shouldShowSmallNavbar ? "0 1rem" : "0 2rem"
+            padding: shouldShowSmallNavbar ? "0 1rem" : "0 2rem",
           }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
-          className={`fixed left-1/2 -translate-x-1/2 z-50 font-body transition-all duration-500 backdrop-blur
-            ${showNav ? "translate-y-0" : "-translate-y-24"}
-            ${isMounted ? "opacity-100" : "opacity-0 -translate-y-8"}
-            ${shouldShowSmallNavbar ? "shadow-none border-none" : "shadow border border-white/30"}
-          `}
+          className={`${
+            isFixedNavbarPage ? "fixed" : "relative"
+          } left-1/2 -translate-x-1/2 z-50 font-body transition-all duration-500 backdrop-blur
+    ${showNav ? "translate-y-0" : "-translate-y-24"}
+    ${isMounted ? "opacity-100" : "opacity-0 -translate-y-8"}
+    ${
+      shouldShowSmallNavbar
+        ? "shadow-none border-none"
+        : "shadow border border-white/30"
+    }
+  `}
         >
-          <div className={`flex items-center justify-between h-full ${shouldShowSmallNavbar ? "px-4" : "px-5 py-3"}`}>
+          <div
+            className={`flex items-center justify-between h-full ${
+              shouldShowSmallNavbar ? "px-4" : "px-5 py-3"
+            }`}
+          >
             {/* Logo */}
             <Link
               to="/home"
               className="font-brand cursor-pointer hover:opacity-80 transition-opacity flex items-center"
-              style={{ 
-                letterSpacing: ".5px", 
+              style={{
+                letterSpacing: ".5px",
                 padding: shouldShowSmallNavbar ? "0.5rem" : "1rem",
                 color: shouldShowSmallNavbar ? "white" : "#1f2937",
-                fontSize: shouldShowSmallNavbar ? "1.25rem" : "1.5rem"
+                fontSize: shouldShowSmallNavbar ? "1.25rem" : "1.5rem",
               }}
             >
               HydroFi
@@ -128,13 +145,21 @@ export const Navbar = () => {
               <div className="hidden md:flex items-center gap-5 text-gray-300 text-base font-medium">
                 <Link
                   to="/dashboard"
-                  className={`px-3 py-1 rounded-md ${location.pathname === "/dashboard" ? "bg-brand-accent text-white" : "hover:bg-white/10"}`}
+                  className={`px-3 py-1 rounded-md ${
+                    location.pathname === "/dashboard"
+                      ? "bg-brand-accent text-white"
+                      : "hover:bg-white/10"
+                  }`}
                 >
                   Dashboard
                 </Link>
                 <Link
                   to="/map"
-                  className={`px-3 py-1 rounded-md ${location.pathname === "/map" ? "bg-brand-accent text-white" : "hover:bg-white/10"}`}
+                  className={`px-3 py-1 rounded-md ${
+                    location.pathname === "/map"
+                      ? "bg-brand-accent text-white"
+                      : "hover:bg-white/10"
+                  }`}
                 >
                   Map
                 </Link>
@@ -145,8 +170,11 @@ export const Navbar = () => {
             <div className="flex items-center gap-4 ml-2">
               {isAuthenticated ? (
                 <div className="flex items-center gap-3">
-                  <span className="hidden lg:inline font-medium text-sm"
-                    style={{ color: shouldShowSmallNavbar ? "white" : "#374151" }}
+                  <span
+                    className="hidden lg:inline font-medium text-sm"
+                    style={{
+                      color: shouldShowSmallNavbar ? "white" : "#374151",
+                    }}
                   >
                     Welcome, {user?.username}!
                   </span>
@@ -159,7 +187,9 @@ export const Navbar = () => {
                   <button
                     onClick={handleLogout}
                     className="px-2 transition-colors text-sm font-medium"
-                    style={{ color: shouldShowSmallNavbar ? "#d1d5db" : "#4b5563" }}
+                    style={{
+                      color: shouldShowSmallNavbar ? "#d1d5db" : "#4b5563",
+                    }}
                   >
                     Logout
                   </button>
@@ -170,7 +200,9 @@ export const Navbar = () => {
                     <Link
                       to="/login"
                       className="font-medium text-sm px-3 transition-colors"
-                      style={{ color: shouldShowSmallNavbar ? "white" : "#4b5563" }}
+                      style={{
+                        color: shouldShowSmallNavbar ? "white" : "#4b5563",
+                      }}
                     >
                       Login
                     </Link>
@@ -178,9 +210,11 @@ export const Navbar = () => {
                   <Link
                     to="/register"
                     className="font-medium py-2 px-5 rounded-full hover:shadow-xl hover:scale-105 transition text-sm"
-                    style={{ 
-                      backgroundColor: shouldShowSmallNavbar ? "#00A786" : "black",
-                      color: "white"
+                    style={{
+                      backgroundColor: shouldShowSmallNavbar
+                        ? "#00A786"
+                        : "black",
+                      color: "white",
                     }}
                   >
                     {shouldShowSmallNavbar ? "Get Started" : "Start Now!"}

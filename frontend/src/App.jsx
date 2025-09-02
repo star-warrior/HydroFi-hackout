@@ -31,14 +31,18 @@ function App() {
 
 const AppContent = () => {
   const location = useLocation();
-  
+
   // Check if we're on a page that should have the full navbar
-  const isFullNavbarPage = ["/", "/login", "/register"].includes(location.pathname);
+  const isFullNavbarPage = ["/", "/login", "/register"].includes(
+    location.pathname
+  );
 
   return (
     <div className="App min-h-screen flex flex-col">
       <Navbar showFull={isFullNavbarPage} />
-      <main className="flex-1 pt-16"> {/* Added padding to account for fixed navbar */}
+      <main className="flex-1">
+        {" "}
+        {/* Added padding to account for fixed navbar */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
